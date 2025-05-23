@@ -839,18 +839,17 @@ Tente novamente... ou Ctrl + C para sair
 	else
 		echo -e "O diretório para os icones será criado...\n"
 		mkdir /usr/share/pixmaps/JoystickXbox360
-	fi
-	if [ -e "/usr/share/pixmaps/JoystickXbox360/xbox360.png" ]; then
-		echo "O arquivo existe, não será necessário ser baixado..."
-	else
-		wget -P /tmp https://raw.githubusercontent.com/marxfcmonte/Instalador-do-emulador-de-joystick-Xbox-360-em-joytick-ger-rico-USB-de-PC-PS2-e-PS3/refs/heads/main/Icones/xbox360.png
-	mv /tmp/xbox360.png /usr/share/pixmaps/JoystickXbox360
-	fi
-	if [ -e "/usr/share/pixmaps/JoystickXbox360/xbox360preto.png" ]; then
-		echo "O arquivo existe, não será necessário ser baixado..."
-	else
-		wget -P /tmp https://raw.githubusercontent.com/marxfcmonte/Instalador-do-emulador-de-joystick-Xbox-360-em-joytick-ger-rico-USB-de-PC-PS2-e-PS3/refs/heads/main/Icones/xbox360preto.png 
-	mv /tmp/xbox360preto.png /usr/share/pixmaps/JoystickXbox360
+		cat <<EOF > /usr/share/JoystickXbox360/xbox360
+https://raw.githubusercontent.com/marxfcmonte/Instalador-do-emulador-de-\
+joystick-Xbox-em-joystick-generico-de-PC-PS2-PS3-Debian-e-Derivados-antix-\
+/refs/heads/main/Icones/xbox360.png
+https://raw.githubusercontent.com/marxfcmonte/Instalador-do-emulador-de-\
+joystick-Xbox-em-joystick-generico-de-PC-PS2-PS3-Debian-e-Derivados-antix-\
+/refs/heads/main/Icones/xbox360preto.png	
+EOF
+		wget -i /usr/share/JoystickXbox360/xbox360 -P /tmp/
+		mv /tmp/xbox360.png /usr/share/pixmaps/JoystickXbox360
+		mv /tmp/xbox360preto.png /usr/share/pixmaps/JoystickXbox360
 	fi
 	cat <<EOF > /usr/share/JoystickXbox360/StopJoystick.sh
 #!/bin/bash
