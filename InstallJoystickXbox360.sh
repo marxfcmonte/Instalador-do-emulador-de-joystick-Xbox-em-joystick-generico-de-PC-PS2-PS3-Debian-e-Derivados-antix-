@@ -54,7 +54,8 @@ Opção $xbox selecionada: configuração padrão...\n"
 				echo "O arquivo install.conf existe..."
 			else
 				echo -e "O arquivo install.conf será criado..."
-				echo "xboxdrv joystick antimicro" > /usr/share/JoystickXbox360/install.conf
+				echo "Pacotes instalados xboxdrv joystick antimicro" >\
+				 /usr/share/JoystickXbox360/install.conf
 			fi
 			pkill xboxdrv &
 			sleep 5
@@ -1010,6 +1011,7 @@ elif [ "$opcao" = "2" ]; then
 	if [ -d "/usr/share/JoystickXbox360" ]; then
 		echo "Os arquivos serão removidos..." 
 		service joystickxbox360 stop
+		update-rc.d joystickxbox360 remove
 		rm -rf /usr/share/JoystickXbox360
 	else
 		echo "O diretório não encontrado..."
