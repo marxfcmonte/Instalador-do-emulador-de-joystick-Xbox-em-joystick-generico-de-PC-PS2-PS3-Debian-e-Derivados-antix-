@@ -41,7 +41,7 @@ Opção $xbox selecionada: configuração padrão...\n"
 			if [ -e "/usr/share/JoystickXbox360/install.conf" ]; then
 				echo "A instalação dos pacotes não será necessária..."
 			else
-				apt update && apt upgrade
+				apt update && apt upgrade -y
 				apt install -y xboxdrv joystick antimicro
 			fi
 			if [ -d "/usr/share/JoystickXbox360" ]; then
@@ -241,7 +241,7 @@ Opção $xbox selecionada: analógico esquerdo com sentido invertido...\n"
 			if [ -e "/usr/share/JoystickXbox360/install.conf" ]; then
 				echo "A instalação dos pacotes não será necessária..."
 			else
-				apt update && apt upgrade
+				apt update && apt upgrade -y
 				apt install -y xboxdrv joystick antimicro
 			fi
 			if [ -d "/usr/share/JoystickXbox360" ]; then
@@ -439,7 +439,7 @@ Opção $xbox selecionada: analógico direito com sentido invertido...\n"
 			if [ -e "/usr/share/JoystickXbox360/install.conf" ]; then
 				echo "A instalação dos pacotes não será necessária..."
 			else
-				apt update && apt upgrade
+				apt update && apt upgrade -y
 				apt install -y xboxdrv joystick antimicro
 			fi
 			if [ -d "/usr/share/JoystickXbox360" ]; then
@@ -636,7 +636,7 @@ Opção $xbox selecionada: 2 analógicos com sentido invertido...\n"
 			if [ -e "/usr/share/JoystickXbox360/install.conf" ]; then
 				echo "A instalação dos pacotes não será necessária..."
 			else
-				apt update && apt upgrade
+				apt update && apt upgrade -y
 				apt install -y xboxdrv joystick antimicro
 			fi
 			if [ -d "/usr/share/JoystickXbox360" ]; then
@@ -1013,6 +1013,7 @@ elif [ "$opcao" = "2" ]; then
 		service joystickxbox360 stop
 		update-rc.d joystickxbox360 remove
 		rm -rf /usr/share/JoystickXbox360
+		rm /etc/init.d/joystickxbox360
 	else
 		echo "O diretório não encontrado..."
 	fi
