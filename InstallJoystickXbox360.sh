@@ -36,8 +36,21 @@ Ctrl + C para sair
 		read -p "OPÇÃO: " xbox
 		case $xbox in
 			1)
+			configuracao="configuração padrão"
+			;;		
+			2)
+			configuracao="analógico esquerdo com sentido invertido"
+			;;
+			3)
+			configuracao="analógico direito com sentido invertido"
+			;;
+			4)
+			configuracao="2 analógicos com sentido invertido"
+			;;
+		esac
+		if [ $xbox -ge 1 -a $xbox -lt 4 ]; then
 			echo -e "\nInstalação sendo iniciada...			
-Opção $xbox selecionada: configuração padrão...\n"
+Opção $xbox selecionada: $configuracao...\n"
 			if [ -e "/usr/share/JoystickXbox360/install.conf" ]; then
 				echo "A instalação dos pacotes não será necessária..."
 			else
@@ -45,7 +58,7 @@ Opção $xbox selecionada: configuração padrão...\n"
 				apt install -y xboxdrv joystick antimicro
 			fi
 			if [ -d "/usr/share/JoystickXbox360" ]; then
-				echo -e "O diretório JoystickXbox360 existe..."
+					echo -e "O diretório JoystickXbox360 existe..."
 			else
 				echo -e "\nO diretório JoystickXbox360 será criado...\n"
 				mkdir /usr/share/JoystickXbox360
@@ -118,7 +131,45 @@ Section "InputClass"
 	Option "StartMouseEnabled" "False"
 EndSection
 EOF
-			cat <<EOF > /usr/share/JoystickXbox360/StartJoystick.sh
+		fi
+		case $xbox in
+			1)
+			joystickconf="--evdev-absmap ABS_X=x1,ABS_Y=y1,ABS_RZ=y2,ABS_Z=x2,\
+ABS_HAT0X=dpad_x,ABS_HAT0Y=dpad_y --axismap -Y1=Y1,-Y2=Y2 --evdev-keymap BTN_TOP=x,\
+BTN_TRIGGER=y,BTN_THUMB2=a,BTN_THUMB=b,BTN_BASE3=back,BTN_BASE4=start,BTN_BASE=lt,BTN_BASE2=rt,\
+BTN_TOP2=lb,BTN_PINKIE=rb,BTN_BASE5=tl,BTN_BASE6=tr --mimic-xpad --silent"
+			break
+			;;
+			2)
+			joystickconf="--evdev-absmap ABS_X=x1,ABS_Y=y1,ABS_RZ=x2,ABS_Z=y2,\
+ABS_HAT0X=dpad_x,ABS_HAT0Y=dpad_y --axismap Y1=Y1,Y2=Y2 --evdev-keymap BTN_TOP=x,BTN_TRIGGER=y,\
+BTN_THUMB2=a,BTN_THUMB=b,BTN_BASE3=back,BTN_BASE4=start,BTN_BASE=lt,BTN_BASE2=rt,BTN_TOP2=lb,\
+BTN_PINKIE=rb,BTN_BASE5=tl,BTN_BASE6=tr --mimic-xpad --silent"
+			break
+			;;
+			3)
+			joystickconf="--evdev-absmap ABS_X=x1,ABS_Y=y1,ABS_RZ=x2,ABS_Z=y2,\
+ABS_HAT0X=dpad_x,ABS_HAT0Y=dpad_y --axismap -Y1=Y1,-Y2=Y2 --evdev-keymap BTN_TOP=x,BTN_TRIGGER=y,\
+BTN_THUMB2=a,BTN_THUMB=b,BTN_BASE3=back,BTN_BASE4=start,BTN_BASE=lt,BTN_BASE2=rt,BTN_TOP2=lb,\
+BTN_PINKIE=rb,BTN_BASE5=tl,BTN_BASE6=tr --mimic-xpad --silent"
+			break
+			;;
+			4)
+			joystickconf="--evdev-absmap ABS_X=x1,ABS_Y=y1,ABS_RZ=x2,ABS_Z=y2,\
+ABS_HAT0X=dpad_x,ABS_HAT0Y=dpad_y --axismap Y1=Y1,Y2=Y2 --evdev-keymap BTN_TOP=x,BTN_TRIGGER=y,\
+BTN_THUMB2=a,BTN_THUMB=b,BTN_BASE3=back,BTN_BASE4=start,BTN_BASE=lt,BTN_BASE2=rt,BTN_TOP2=lb,\
+BTN_PINKIE=rb,BTN_BASE5=tl,BTN_BASE6=tr --mimic-xpad --silent"
+			break
+			;;
+			*)
+			echo "
+Opção $xbox - inválida!
+Tente novamente... ou Ctrl + C para sair
+"
+			;;
+		esac
+	done
+	cat <<EOF > /usr/share/JoystickXbox360/StartJoystick.sh
 #!/bin/bash
 
 pkill xboxdrv &
@@ -144,10 +195,7 @@ do
 	i=\$[ i + 1 ]
 done
 chmod 775 /dev/input/event\$jost 
-xboxdrv --evdev /dev/input/event\$jost --evdev-absmap ABS_X=x1,ABS_Y=y1,ABS_RZ=y2,\
-ABS_Z=x2,ABS_HAT0X=dpad_x,ABS_HAT0Y=dpad_y --axismap -Y1=Y1,-Y2=Y2 --evdev-keymap BTN_TOP=x,\
-BTN_TRIGGER=y,BTN_THUMB2=a,BTN_THUMB=b,BTN_BASE3=back,BTN_BASE4=start,BTN_BASE=lt,BTN_BASE2=rt,\
-BTN_TOP2=lb,BTN_PINKIE=rb,BTN_BASE5=tl,BTN_BASE6=tr --mimic-xpad --silent > /tmp/joystick.log &
+xboxdrv --evdev /dev/input/event\$jost $joystickconf > /tmp/joystick.log &
 sleep 5 
 i=0
 while true 
@@ -175,8 +223,7 @@ sleep 6
 exit 0
 
 EOF
-
-			cat <<EOF > /usr/share/JoystickXbox360/RStarJoystick.sh
+	cat <<EOF > /usr/share/JoystickXbox360/RStarJoystick.sh
 #!/bin/bash
 
 pkill xboxdrv &
@@ -201,10 +248,7 @@ do
 	fi
 	i=\$[ i + 1 ]
 done
-xboxdrv --evdev /dev/input/event\$jost --evdev-absmap ABS_X=x1,ABS_Y=y1,ABS_RZ=y2,ABS_Z=x2,\
-ABS_HAT0X=dpad_x,ABS_HAT0Y=dpad_y --axismap -Y1=Y1,-Y2=Y2 --evdev-keymap BTN_TOP=x,\
-BTN_TRIGGER=y,BTN_THUMB2=a,BTN_THUMB=b,BTN_BASE3=back,BTN_BASE4=start,BTN_BASE=lt,BTN_BASE2=rt,\
-BTN_TOP2=lb,BTN_PINKIE=rb,BTN_BASE5=tl,BTN_BASE6=tr --mimic-xpad --silent > /tmp/joystick.log &
+xboxdrv --evdev /dev/input/event\$jost $joystickconf > /tmp/joystick.log &
 sleep 5
 i=0
 while true 
@@ -233,608 +277,6 @@ sleep 60
 exit 0
 
 EOF
-			break
-			;;
-			2)
-			echo -e "\nInstalação sendo iniciada...			
-Opção $xbox selecionada: analógico esquerdo com sentido invertido...\n"
-			if [ -e "/usr/share/JoystickXbox360/install.conf" ]; then
-				echo "A instalação dos pacotes não será necessária..."
-			else
-				apt update && apt upgrade -y
-				apt install -y xboxdrv joystick antimicro
-			fi
-			if [ -d "/usr/share/JoystickXbox360" ]; then
-				echo -e "O diretório JoystickXbox360 existe..."
-			else
-				echo -e "\nO diretório JoystickXbox360 será criado...\n"
-				mkdir /usr/share/JoystickXbox360
-			fi
-			if [ -e "/usr/share/JoystickXbox360/install.conf" ]; then
-				echo "O arquivo install.conf existe..."
-			else
-				echo -e "O arquivo install.conf será criado..."
-				echo "xboxdrv joystick antimicro" > /usr/share/JoystickXbox360/install.conf
-			fi
-			pkill xboxdrv &
-			sleep 5
-			i=0
-			while true 
-			do
-				udevadm info -a -n /dev/input/event$i > /usr/share/JoystickXbox360/joystick.log
-				if [ ! -s "/usr/share/JoystickXbox360/joystick.log" ]; then
-					read -p "Porta do joystick não localizada... Aperte Enter para sair." erro 
-					exit 1
-				fi
-				udevadm info -a -n /dev/input/event$i | grep -q "Joystick"
-				if [ "$?" = "0" ]; then
-					echo -e "\nPorta do joystick localizada..."
-					jost=$i 
-					break
-				fi
-				i=$[ i + 1 ]
-			done
-			chmod 775 /dev/input/event$jost 
-			xboxdrv --evdev /dev/input/event$jost --evdev-absmap ABS_X=x1,ABS_Y=y1,ABS_RZ=y2,\
-	ABS_Z=x2,ABS_HAT0X=dpad_x,ABS_HAT0Y=dpad_y --axismap -Y1=Y1,-Y2=Y2 --evdev-keymap BTN_TOP=x,\
-	BTN_TRIGGER=y,BTN_THUMB2=a,BTN_THUMB=b,BTN_BASE3=back,BTN_BASE4=start,BTN_BASE=lt,BTN_BASE2=rt,\
-	BTN_TOP2=lb,BTN_PINKIE=rb,BTN_BASE5=tl,BTN_BASE6=tr --mimic-xpad --silent > /tmp/joystick.log &
-			sleep 5 
-			i=0
-			while true 
-			do
-				udevadm info -a -n /dev/input/event$i > /usr/share/JoystickXbox360/joystick.log
-				if [ ! -s "/usr/share/JoystickXbox360/joystick.log" ]; then
-					read -p "Porta do joystick Xbox 360 emulado não localizada... Aperte Enter para sair." erro 
-					exit 1
-				fi
-				udevadm info -a -n /dev/input/event$i | grep -q "Microsoft X-Box 360 pad"
-				if [ "$?" = "0" ]; then
-					echo -e "Porta do joystick Xbox 360 emulado localizada..."
-					jost1=$i 
-					break
-				fi
-				i=$[ i + 1 ]
-			done
-			chmod 775 /dev/input/event$jost1
-			sleep 2
-			cat <<EOF > /etc/X11/xorg.conf.d/51-joystick.conf
-Section "InputClass"
-	Identifier "joystick catchall"
-	MatchIsJoystick "on"
-	MatchDevicePath "/dev/input/event$jost"
-	Driver "joystick"
-	Option "StartKeysEnabled" "False"
-	Option "StartMouseEnabled" "False"
-EndSection
-
-Section "InputClass"
-	Identifier "joystick catchall"
-	MatchIsJoystick "on"
-	MatchDevicePath "/dev/input/event$jost1"
-	Driver "joystick"
-	Option "StartKeysEnabled" "False"
-	Option "StartMouseEnabled" "False"
-EndSection
-EOF
-			cat <<EOF > /usr/share/JoystickXbox360/StartJoystick.sh
-#!/bin/bash
-
-pkill xboxdrv &
-sleep 5
-i=0
-while true 
-do
-	udevadm info -a -n /dev/input/event\$i > /usr/share/JoystickXbox360/joystick.log
-	if [ ! -s "/usr/share/JoystickXbox360/joystick.log" ]; then
-		read -p "Porta do joystick não localizada... Aperte Enter para sair." erro 
-		echo -e "Joystick Xbox 360\e[31;1m falhou\e[0m..." >\
-		 /usr/share/JoystickXbox360/joystickxbox360.conf
-		exit 1
-	fi
-	udevadm info -a -n /dev/input/event\$i | grep -q "Joystick"
-	if [ "\$?" = "0" ]; then
-		echo -e "\nPorta do joystick localizada..."
-		echo -e "Joystick Xbox 360\e[32;1m iniciado\e[0m..." >\
-		 /usr/share/JoystickXbox360/joystickxbox360.conf
-		jost=\$i 
-		break
-	fi
-	i=\$[ i + 1 ]
-done
-chmod 775 /dev/input/event\$jost 
-xboxdrv --evdev /dev/input/event\$jost --evdev-absmap ABS_X=x1,ABS_Y=y1,ABS_RZ=x2,ABS_Z=y2,\
-ABS_HAT0X=dpad_x,ABS_HAT0Y=dpad_y --axismap Y1=Y1,Y2=Y2 --evdev-keymap BTN_TOP=x,BTN_TRIGGER=y,\
-BTN_THUMB2=a,BTN_THUMB=b,BTN_BASE3=back,BTN_BASE4=start,BTN_BASE=lt,BTN_BASE2=rt,BTN_TOP2=lb,\
-BTN_PINKIE=rb,BTN_BASE5=tl,BTN_BASE6=tr --mimic-xpad --silent > /tmp/joystick.log &
-sleep 5
-i=0
-while true 
-do
-	udevadm info -a -n /dev/input/event\$i > /usr/share/JoystickXbox360/joystick.log
-	if [ ! -s "/usr/share/JoystickXbox360/joystick.log" ]; then
-		read -p "Porta do joystick Xbox 360 emulado não localizada... Aperte Enter para sair." erro
-		echo -e "Joystick Xbox 360\e[31;1m falhou\e[0m..." >\
-		 /usr/share/JoystickXbox360/joystickxbox360.conf 
-		exit 1
-	fi
-	udevadm info -a -n /dev/input/event\$i | grep -q "Microsoft X-Box 360 pad"
-	if [ "\$?" = "0" ]; then
-	echo "Porta do joystick Xbox 360 emulado localizada..."
-	echo -e "Joystick Xbox 360\e[32;1m iniciado\e[0m..." >\
-	 /usr/share/JoystickXbox360/joystickxbox360.conf
-	jost1=\$i 
-	break
-	fi
-	i=\$[ i + 1 ]
-done
-chmod 775 /dev/input/event\$jost1
-sleep 6
-
-exit 0
-
-EOF
-			cat <<EOF > /usr/share/JoystickXbox360/RStarJoystick.sh
-#!/bin/bash
-
-pkill xboxdrv &
-sleep 5
-i=0
-while true 
-do
-	udevadm info -a -n /dev/input/event\$i > /usr/share/JoystickXbox360/joystick.log
-	if [ ! -s "/usr/share/JoystickXbox360/joystick.log" ]; then
-		read -p "Porta do joystick não localizada... Aperte Enter para sair." erro 
-		echo -e "Joystick Xbox 360\e[31;1m falhou\e[0m..." >\
-		 /usr/share/JoystickXbox360/joystickxbox360.conf
-		exit 1
-	fi
-	udevadm info -a -n /dev/input/event\$i | grep -q "Joystick"
-	if [ "\$?" = "0" ]; then
-		echo -e "\nPorta do joystick localizada..."
-		echo -e "Joystick Xbox 360\e[32;1m reiniciado\e[0m..." >\
-		 /usr/share/JoystickXbox360/joystickxbox360.conf
-		jost=\$i 
-		break
-	fi
-	i=\$[ i + 1 ]
-done
-xboxdrv --evdev /dev/input/event\$jost --evdev-absmap ABS_X=x1,ABS_Y=y1,ABS_RZ=x2,ABS_Z=y2,\
-ABS_HAT0X=dpad_x,ABS_HAT0Y=dpad_y --axismap Y1=Y1,Y2=Y2 --evdev-keymap BTN_TOP=x,BTN_TRIGGER=y,\
-BTN_THUMB2=a,BTN_THUMB=b,BTN_BASE3=back,BTN_BASE4=start,BTN_BASE=lt,BTN_BASE2=rt,BTN_TOP2=lb,\
-BTN_PINKIE=rb,BTN_BASE5=tl,BTN_BASE6=tr --mimic-xpad --silent > /tmp/joystick.log &
-sleep 5 
-i=0
-while true 
-do
-	udevadm info -a -n /dev/input/event\$i > /usr/share/JoystickXbox360/joystick.log
-	if [ ! -s "/usr/share/JoystickXbox360/joystick.log" ]; then
-		read -p "Porta do joystick Xbox 360 emulado não localizada... Aperte Enter para sair." erro
-		echo -e "Joystick Xbox 360\e[31;1m falhou\e[0m..." >\
-		 /usr/share/JoystickXbox360/joystickxbox360.conf
-		exit 1
-	fi
-	udevadm info -a -n /dev/input/event\$i | grep -q "Microsoft X-Box 360 pad"
-	if [ "\$?" = "0" ]; then
-		echo "Porta do joystick Xbox 360 emulado localizada..."
-		echo -e "Joystick Xbox 360\e[32;1m reiniciado\e[0m..." >\
-		 /usr/share/JoystickXbox360/joystickxbox360.conf
-		jost1=\$i 
-		break
-	fi
-	i=\$[ i + 1 ]
-done
-chmod 775 /dev/input/event\$jost1
-echo -e "\e[31;1mAGUARDE...\e[0m"
-sleep 60
-
-exit 0
-
-EOF
-			break
-			;;
-			3)
-			echo -e "\nInstalação sendo iniciada...			
-Opção $xbox selecionada: analógico direito com sentido invertido...\n"
-			if [ -e "/usr/share/JoystickXbox360/install.conf" ]; then
-				echo "A instalação dos pacotes não será necessária..."
-			else
-				apt update && apt upgrade -y
-				apt install -y xboxdrv joystick antimicro
-			fi
-			if [ -d "/usr/share/JoystickXbox360" ]; then
-				echo -e "O diretório JoystickXbox360 existe..."
-			else
-				echo -e "\nO diretório JoystickXbox360 será criado...\n"
-				mkdir /usr/share/JoystickXbox360
-			fi
-			if [ -e "/usr/share/JoystickXbox360/install.conf" ]; then
-				echo "O arquivo install.conf existe..."
-			else
-				echo -e "O arquivo install.conf será criado..."
-				echo "xboxdrv joystick antimicro" > /usr/share/JoystickXbox360/install.conf
-			fi
-			pkill xboxdrv &
-			sleep 5
-			i=0
-			while true 
-			do
-				udevadm info -a -n /dev/input/event$i > /usr/share/JoystickXbox360/joystick.log
-				if [ ! -s "/usr/share/JoystickXbox360/joystick.log" ]; then
-					read -p "Porta do joystick não localizada... Aperte Enter para sair." erro 
-					exit 1
-				fi
-				udevadm info -a -n /dev/input/event$i | grep -q "Joystick"
-				if [ "$?" = "0" ]; then
-					echo -e "\nPorta do joystick localizada..."
-					jost=$i 
-					break
-				fi
-				i=$[ i + 1 ]
-			done
-			chmod 775 /dev/input/event$jost 
-			xboxdrv --evdev /dev/input/event$jost --evdev-absmap ABS_X=x1,ABS_Y=y1,ABS_RZ=y2,\
-	ABS_Z=x2,ABS_HAT0X=dpad_x,ABS_HAT0Y=dpad_y --axismap -Y1=Y1,-Y2=Y2 --evdev-keymap BTN_TOP=x,\
-	BTN_TRIGGER=y,BTN_THUMB2=a,BTN_THUMB=b,BTN_BASE3=back,BTN_BASE4=start,BTN_BASE=lt,BTN_BASE2=rt,\
-	BTN_TOP2=lb,BTN_PINKIE=rb,BTN_BASE5=tl,BTN_BASE6=tr --mimic-xpad --silent > /tmp/joystick.log &
-			sleep 5 
-			i=0
-			while true 
-			do
-				if [ ! -s "/usr/share/JoystickXbox360/joystick.log" ]; then
-					read -p "Porta do joystick Xbox 360 emulado não localizada... Aperte Enter para sair." erro 
-					exit 1
-				fi
-				udevadm info -a -n /dev/input/event$i | grep -q "Microsoft X-Box 360 pad"
-				if [ "$?" = "0" ]; then
-					echo -e "Porta do joystick Xbox 360 emulado localizada..."
-					jost1=$i 
-					break
-				fi
-				i=$[ i + 1 ]
-			done
-			chmod 775 /dev/input/event$jost1
-			sleep 2
-			cat <<EOF > /etc/X11/xorg.conf.d/51-joystick.conf
-Section "InputClass"
-	Identifier "joystick catchall"
-	MatchIsJoystick "on"
-	MatchDevicePath "/dev/input/event$jost"
-	Driver "joystick"
-	Option "StartKeysEnabled" "False"
-	Option "StartMouseEnabled" "False"
-EndSection
-
-Section "InputClass"
-	Identifier "joystick catchall"
-	MatchIsJoystick "on"
-	MatchDevicePath "/dev/input/event$jost1"
-	Driver "joystick"
-	Option "StartKeysEnabled" "False"
-	Option "StartMouseEnabled" "False"
-EndSection
-EOF
-			cat <<EOF > /usr/share/JoystickXbox360/StartJoystick.sh
-#!/bin/bash
-
-pkill xboxdrv &
-sleep 5
-i=0
-while true 
-do
-	udevadm info -a -n /dev/input/event\$i > /usr/share/JoystickXbox360/joystick.log
-	if [ ! -s "/usr/share/JoystickXbox360/joystick.log" ]; then
-		read -p "Porta do joystick não localizada... Aperte Enter para sair." erro 
-		echo -e "Joystick Xbox 360\e[31;1m falhou\e[0m..." >\
-		 /usr/share/JoystickXbox360/joystickxbox360.conf
-		exit 1
-	fi
-	udevadm info -a -n /dev/input/event\$i | grep -q "Joystick"
-	if [ "\$?" = "0" ]; then
-		echo -e "\nPorta do joystick localizada..."
-		echo -e "Joystick Xbox 360\e[32;1m iniciado\e[0m..." >\
-		 /usr/share/JoystickXbox360/joystickxbox360.conf
-		jost=\$i 
-		break
-	fi
-	i=\$[ i + 1 ]
-done
-chmod 775 /dev/input/event\$jost 
-xboxdrv --evdev /dev/input/event\$jost --evdev-absmap ABS_X=x1,ABS_Y=y1,ABS_RZ=x2,ABS_Z=y2,\
-ABS_HAT0X=dpad_x,ABS_HAT0Y=dpad_y --axismap -Y1=Y1,-Y2=Y2 --evdev-keymap BTN_TOP=x,BTN_TRIGGER=y,\
-BTN_THUMB2=a,BTN_THUMB=b,BTN_BASE3=back,BTN_BASE4=start,BTN_BASE=lt,BTN_BASE2=rt,BTN_TOP2=lb,\
-BTN_PINKIE=rb,BTN_BASE5=tl,BTN_BASE6=tr --mimic-xpad --silent > /tmp/joystick.log & 
-sleep 5
-i=0
-while true 
-do
-	udevadm info -a -n /dev/input/event\$i > /usr/share/JoystickXbox360/joystick.log
-	if [ ! -s "/usr/share/JoystickXbox360/joystick.log" ]; then
-		read -p "Porta do joystick Xbox 360 emulado não localizada... Aperte Enter para sair." erro 
-		echo -e "Joystick Xbox 360\e[31;1m falhou\e[0m..." >\
-		 /usr/share/JoystickXbox360/joystickxbox360.conf
-		exit 1
-	fi
-	udevadm info -a -n /dev/input/event\$i | grep -q "Microsoft X-Box 360 pad"
-	if [ "\$?" = "0" ]; then
-		echo "Porta do joystick Xbox 360 emulado localizada..."
-		echo -e "Joystick Xbox 360\e[32;1m iniciado\e[0m..." >\
-		 /usr/share/JoystickXbox360/joystickxbox360.conf
-		jost1=\$i 
-		break
-	fi
-	i=\$[ i + 1 ]
-done
-chmod 775 /dev/input/event\$jost1
-sleep 6
-
-exit 0
-
-EOF
-			cat <<EOF > /usr/share/JoystickXbox360/RStarJoystick.sh
-#!/bin/bash
-
-pkill xboxdrv &
-sleep 5
-i=0
-while true 
-do
-	udevadm info -a -n /dev/input/event\$i > /usr/share/JoystickXbox360/joystick.log
-	if [ ! -s "/usr/share/JoystickXbox360/joystick.log" ]; then
-		read -p "Porta do joystick não localizada... Aperte Enter para sair." erro 
-		echo -e "Joystick Xbox 360\e[31;1m falhou\e[0m..." >\
-		 /usr/share/JoystickXbox360/joystickxbox360.conf
-		exit 1
-	fi
-	udevadm info -a -n /dev/input/event\$i | grep -q "Joystick"
-	if [ "\$?" = "0" ]; then
-		echo -e "\nPorta do joystick localizada..."
-		echo -e "Joystick Xbox 360\e[32;1m reiniciado\e[0m..." >\
-		 /usr/share/JoystickXbox360/joystickxbox360.conf
-		jost=\$i 
-		break
-	fi
-	i=\$[ i + 1 ]
-done
-xboxdrv --evdev /dev/input/event\$jost --evdev-absmap ABS_X=x1,ABS_Y=y1,ABS_RZ=x2,ABS_Z=y2,\
-ABS_HAT0X=dpad_x,ABS_HAT0Y=dpad_y --axismap -Y1=Y1,-Y2=Y2 --evdev-keymap BTN_TOP=x,BTN_TRIGGER=y,\
-BTN_THUMB2=a,BTN_THUMB=b,BTN_BASE3=back,BTN_BASE4=start,BTN_BASE=lt,BTN_BASE2=rt,BTN_TOP2=lb,\
-BTN_PINKIE=rb,BTN_BASE5=tl,BTN_BASE6=tr --mimic-xpad --silent > /tmp/joystick.log &
-sleep 5
-i=0
-while true 
-do
-	udevadm info -a -n /dev/input/event\$i > /usr/share/JoystickXbox360/joystick.log
-	if [ ! -s "/usr/share/JoystickXbox360/joystick.log" ]; then
-		read -p "Porta do joystick Xbox 360 emulado não localizada... Aperte Enter para sair." erro 
-		echo -e "Joystick Xbox 360\e[31;1m falhou\e[0m..." >\
-		 /usr/share/JoystickXbox360/joystickxbox360.conf
-		exit 1
-	fi
-	udevadm info -a -n /dev/input/event\$i | grep -q "Microsoft X-Box 360 pad"
-	if [ "\$?" = "0" ]; then
-		echo "Porta do joystick Xbox 360 emulado localizada..."
-		echo -e "Joystick Xbox 360\e[32;1m reiniciado\e[0m..." >\
-		 /usr/share/JoystickXbox360/joystickxbox360.conf
-		jost1=\$i 
-		break
-	fi
-	i=\$[ i + 1 ]
-done
-chmod 775 /dev/input/event\$jost1
-echo -e "\e[31;1mAGUARDE...\e[0m"
-sleep 60
-
-exit 0
-
-EOF
-			break
-			;;
-			4)
-			echo -e "\nInstalação sendo iniciada...			
-Opção $xbox selecionada: 2 analógicos com sentido invertido...\n"
-			if [ -e "/usr/share/JoystickXbox360/install.conf" ]; then
-				echo "A instalação dos pacotes não será necessária..."
-			else
-				apt update && apt upgrade -y
-				apt install -y xboxdrv joystick antimicro
-			fi
-			if [ -d "/usr/share/JoystickXbox360" ]; then
-				echo -e "O diretório JoystickXbox360 existe..."
-			else
-				echo -e "\nO diretório JoystickXbox360 será criado...\n"
-				mkdir /usr/share/JoystickXbox360
-			fi
-			if [ -e "/usr/share/JoystickXbox360/install.conf" ]; then
-				echo "O arquivo install.conf existe..."
-			else
-				echo -e "O arquivo install.conf será criado..."
-				echo "xboxdrv joystick antimicro" > /usr/share/JoystickXbox360/install.conf
-			fi
-			pkill xboxdrv &
-			sleep 5
-			i=0
-			while true 
-			do
-				udevadm info -a -n /dev/input/event$i > /usr/share/JoystickXbox360/joystick.log
-				if [ ! -s "/usr/share/JoystickXbox360/joystick.log" ]; then
-					read -p "Porta do joystick não localizada... Aperte Enter para sair." erro 
-					exit 1
-				fi
-				udevadm info -a -n /dev/input/event$i | grep -q "Joystick"
-				if [ "$?" = "0" ]; then
-					echo -e "\nPorta do joystick localizada..."
-					jost=$i 
-					break
-				fi
-				i=$[ i + 1 ]
-			done
-			chmod 775 /dev/input/event$jost 
-			xboxdrv --evdev /dev/input/event$jost --evdev-absmap ABS_X=x1,ABS_Y=y1,ABS_RZ=y2,\
-	ABS_Z=x2,ABS_HAT0X=dpad_x,ABS_HAT0Y=dpad_y --axismap -Y1=Y1,-Y2=Y2 --evdev-keymap BTN_TOP=x,\
-	BTN_TRIGGER=y,BTN_THUMB2=a,BTN_THUMB=b,BTN_BASE3=back,BTN_BASE4=start,BTN_BASE=lt,BTN_BASE2=rt,\
-	BTN_TOP2=lb,BTN_PINKIE=rb,BTN_BASE5=tl,BTN_BASE6=tr --mimic-xpad --silent > /tmp/joystick.log &
-			sleep 5 
-			i=0
-			while true 
-			do
-				if [ ! -s "/usr/share/JoystickXbox360/joystick.log" ]; then
-					read -p "Porta do joystick Xbox 360 emulado não localizada... Aperte Enter para sair." erro 
-					exit 1
-				fi
-				udevadm info -a -n /dev/input/event$i | grep -q "Microsoft X-Box 360 pad"
-				if [ "$?" = "0" ]; then
-					echo -e "Porta do joystick Xbox 360 emulado localizada..."
-					jost1=$i 
-					break
-				fi
-				i=$[ i + 1 ]
-			done
-			chmod 775 /dev/input/event$jost1
-			sleep 2
-			cat <<EOF > /etc/X11/xorg.conf.d/51-joystick.conf
-Section "InputClass"
-	Identifier "joystick catchall"
-	MatchIsJoystick "on"
-	MatchDevicePath "/dev/input/event$jost"
-	Driver "joystick"
-	Option "StartKeysEnabled" "False"
-	Option "StartMouseEnabled" "False"
-EndSection
-
-Section "InputClass"
-	Identifier "joystick catchall"
-	MatchIsJoystick "on"
-	MatchDevicePath "/dev/input/event$jost1"
-	Driver "joystick"
-	Option "StartKeysEnabled" "False"
-	Option "StartMouseEnabled" "False"
-EndSection
-EOF
-			cat <<EOF > /usr/share/JoystickXbox360/StartJoystick.sh
-#!/bin/bash
-
-pkill xboxdrv &
-sleep 5
-i=0
-while true 
-do
-	udevadm info -a -n /dev/input/event\$i > /usr/share/JoystickXbox360/joystick.log
-	if [ ! -s "/usr/share/JoystickXbox360/joystick.log" ]; then
-		read -p "Porta do joystick não localizada... Aperte Enter para sair." erro 
-		echo -e "Joystick Xbox 360\e[31;1m falhou\e[0m..." >\
-		 /usr/share/JoystickXbox360/joystickxbox360.conf
-		exit 1
-	fi
-	udevadm info -a -n /dev/input/event\$i | grep -q "Joystick"
-	if [ "\$?" = "0" ]; then
-		echo -e "\nPorta do joystick localizada..."
-		echo -e "Joystick Xbox 360\e[32;1m iniciado\e[0m..." >\
-		 /usr/share/JoystickXbox360/joystickxbox360.conf
-		jost=\$i 
-		break
-	fi
-	i=\$[ i + 1 ]
-done 
-chmod 775 /dev/input/event\$jost 
-xboxdrv --evdev /dev/input/event\$jost --evdev-absmap ABS_X=x1,ABS_Y=y1,ABS_RZ=x2,ABS_Z=y2,\
-ABS_HAT0X=dpad_x,ABS_HAT0Y=dpad_y --axismap Y1=Y1,Y2=Y2 --evdev-keymap BTN_TOP=x,BTN_TRIGGER=y,\
-BTN_THUMB2=a,BTN_THUMB=b,BTN_BASE3=back,BTN_BASE4=start,BTN_BASE=lt,BTN_BASE2=rt,BTN_TOP2=lb,\
-BTN_PINKIE=rb,BTN_BASE5=tl,BTN_BASE6=tr --mimic-xpad --silent > /tmp/joystick.log & 
-sleep 5 
-i=0
-while true 
-do
-	udevadm info -a -n /dev/input/event\$i > /usr/share/JoystickXbox360/joystick.log
-	if [ ! -s "/usr/share/JoystickXbox360/joystick.log" ]; then
-		read -p "Porta do joystick Xbox 360 emulado não localizada... Aperte Enter para sair." erro 
-		echo -e "Joystick Xbox 360\e[31;1m falhou\e[0m..." >\
-		 /usr/share/JoystickXbox360/joystickxbox360.conf
-		exit 1
-	fi
-	udevadm info -a -n /dev/input/event\$i | grep -q "Microsoft X-Box 360 pad"
-	if [ "\$?" = "0" ]; then
-		echo "Porta do joystick Xbox 360 emulado localizada..."
-		echo -e "Joystick Xbox 360\e[32;1m iniciado\e[0m..." >\
-		 /usr/share/JoystickXbox360/joystickxbox360.conf
-		jost1=\$i 
-		break
-	fi
-	i=\$[ i + 1 ]
-done
-chmod 775 /dev/input/event\$jost1
-sleep 6
-
-exit 0
-
-EOF
-			cat <<EOF > /usr/share/JoystickXbox360/RStarJoystick.sh
-#!/bin/bash
-
-pkill xboxdrv &
-sleep 5
-i=0
-while true 
-do
-	udevadm info -a -n /dev/input/event\$i > /usr/share/JoystickXbox360/joystick.log
-	if [ ! -s "/usr/share/JoystickXbox360/joystick.log" ]; then
-		read -p "Porta do joystick não localizada... Aperte Enter para sair." erro 
-		echo -e "Joystick Xbox 360\e[31;1m falhou\e[0m..." >\
-		 /usr/share/JoystickXbox360/joystickxbox360.conf
-		exit 1
-	fi
-	udevadm info -a -n /dev/input/event\$i | grep -q "Joystick"
-	if [ "\$?" = "0" ]; then
-		echo -e "\nPorta do joystick localizada..."
-		echo -e "Joystick Xbox 360\e[32;1m reiniciado\e[0m..." >\
-		 /usr/share/JoystickXbox360/joystickxbox360.conf
-		jost=\$i 
-		break
-	fi
-	i=\$[ i + 1 ]
-done 
-xboxdrv --evdev /dev/input/event\$jost --evdev-absmap ABS_X=x1,ABS_Y=y1,ABS_RZ=x2,ABS_Z=y2,\
-ABS_HAT0X=dpad_x,ABS_HAT0Y=dpad_y --axismap Y1=Y1,Y2=Y2 --evdev-keymap BTN_TOP=x,BTN_TRIGGER=y,\
-BTN_THUMB2=a,BTN_THUMB=b,BTN_BASE3=back,BTN_BASE4=start,BTN_BASE=lt,BTN_BASE2=rt,BTN_TOP2=lb,\
-BTN_PINKIE=rb,BTN_BASE5=tl,BTN_BASE6=tr --mimic-xpad --silent > /tmp/joystick.log &
-sleep 5 
-i=0
-while true 
-do
-	udevadm info -a -n /dev/input/event\$i > /usr/share/JoystickXbox360/joystick.log
-	if [ ! -s "/usr/share/JoystickXbox360/joystick.log" ]; then
-		read -p "Porta do joystick Xbox 360 emulado não localizada... Aperte Enter para sair." erro 
-		echo -e "Joystick Xbox 360\e[31;1m falhou\e[0m..." >\
-		 /usr/share/JoystickXbox360/joystickxbox360.conf
-		exit 1
-	fi
-	udevadm info -a -n /dev/input/event\$i | grep -q "Microsoft X-Box 360 pad"
-	if [ "\$?" = "0" ]; then
-		echo "Porta do joystick Xbox 360 emulado localizada..."
-		echo -e "Joystick Xbox 360\e[32;1m reiniciado\e[0m..." >\
-		 /usr/share/JoystickXbox360/joystickxbox360.conf
-		jost1=\$i 
-		break
-	fi
-	i=\$[ i + 1 ]
-done
-chmod 775 /dev/input/event\$jost1
-echo -e "\e[31;1mAGUARDE...\e[0m"
-sleep 60
-
-exit 0
-
-EOF
-			break
-			;;
-			*)
-			echo "
-Opção $xbox - inválida!
-Tente novamente... ou Ctrl + C para sair
-"
-			;;
-		esac
-	done
 	if [ -d "/usr/share/pixmaps/JoystickXbox360" ]; then
 		echo "O diretório para os icones já existe..."
 	else
