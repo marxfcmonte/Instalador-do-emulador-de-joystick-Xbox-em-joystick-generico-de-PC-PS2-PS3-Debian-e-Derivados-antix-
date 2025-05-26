@@ -7,6 +7,8 @@ Ele desenvolve dois softwares, um para restabelecer a emulação do joystick Xbo
 
 Cria atalhos para a Área de trabalho e no menu dos aplicativos do sistema.
 
-Totalmente automatizado, ele reconhece o joystick e faz as configurações, apenas solicitando do usuário o perfil do joystick.
+# Totalmente automatizado
 
+Ele reconhece o joystick e faz as configurações, apenas solicitando do usuário o perfil do joystick.
 
+Agora com pacote Deb, InstallJoystickXbox.deb, para uma instalação automatizada pelo gerenciador de pacotes Deb sem precisar do terminal.
