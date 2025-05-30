@@ -34,40 +34,7 @@ case $opcao in
 --stdout)
 	clear
 	case $xbox in
-		1)
-		if [ -d "/usr/share/JoystickXbox360" ]; then
-				echo -e "\nO diretório JoystickXbox360 existe..."
-		else
-			echo -e "\nO diretório JoystickXbox360 será criado..."
-			mkdir /usr/share/JoystickXbox360
-		fi
-		cat <<EOF > /usr/share/JoystickXbox360/status.conf
-configuração padrão...
-EOF
-		;;
-		2)
-		if [ -d "/usr/share/JoystickXbox360" ]; then
-					echo -e "\nO diretório JoystickXbox360 existe..."
-		else
-			echo -e "\nO diretório JoystickXbox360 será criado..."
-			mkdir /usr/share/JoystickXbox360
-		fi
-		cat <<EOF > /usr/share/JoystickXbox360/status.conf
-analógico esquerdo com sentido invertido...
-EOF
-		;;
-		3)
-		if [ -d "/usr/share/JoystickXbox360" ]; then
-				echo -e "\nO diretório JoystickXbox360 existe..."
-		else
-			echo -e "\nO diretório JoystickXbox360 será criado..."
-			mkdir /usr/share/JoystickXbox360
-		fi
-			cat <<EOF > /usr/share/JoystickXbox360/status.conf
-analógico direito com sentido invertido.
-EOF
-		;;
-		4)
+		1|2|3|4)
 		if [ -d "/usr/share/JoystickXbox360" ]; then
 			texto="O diretório JoystickXbox360 existe..."
 			cont="$[${#texto} + 4]"
@@ -82,6 +49,23 @@ EOF
 			clear
 			mkdir /usr/share/JoystickXbox360
 		fi
+		;;
+		1)
+		cat <<EOF > /usr/share/JoystickXbox360/status.conf
+configuração padrão...
+EOF
+		;;
+		2)
+		cat <<EOF > /usr/share/JoystickXbox360/status.conf
+analógico esquerdo com sentido invertido...
+EOF
+		;;
+		3)
+		cat <<EOF > /usr/share/JoystickXbox360/status.conf
+analógico direito com sentido invertido.
+EOF
+		;;
+		4)
 		cat <<EOF > /usr/share/JoystickXbox360/status.conf
 2 analógicos com sentido invertido...
 EOF
@@ -92,7 +76,7 @@ EOF
 		dialog --infobox "$texto" 3 $cont
 		sleep 3
 		clear
-		exit 1
+		exit 0
 		;;
 	esac
 	configuracao="$(cat /usr/share/JoystickXbox360/status.conf)"
@@ -133,7 +117,12 @@ EOF
 	do
 		udevadm info -a -n /dev/input/event$i > /usr/share/JoystickXbox360/joystick.log
 		if ! [ "$(cat "/usr/share/JoystickXbox360/joystick.log")" ]; then
-			read -p "Porta do joystick não localizada... Aperte Enter para sair." erro
+			clear
+			texto="Porta do joystick não localizada..."
+			cont="$[${#texto} + 4]"
+			dialog --infobox "$texto" 3 $cont
+			sleep 3
+			clear
 			exit 1
 		fi
 		udevadm info -a -n /dev/input/event$i | grep -q "Joystick"
@@ -159,7 +148,12 @@ BTN_TOP2=lb,BTN_PINKIE=rb,BTN_BASE5=tl,BTN_BASE6=tr --mimic-xpad --silent > /tmp
 	do
 		udevadm info -a -n /dev/input/event$i > /usr/share/JoystickXbox360/joystick.log
 		if ! [ "$(cat "/usr/share/JoystickXbox360/joystick.log")" ]; then
-			read -p "Porta do joystick Xbox 360 emulado não localizada... Aperte Enter para sair." erro
+			clear
+			texto="Porta do joystick Xbox 360 emulado não localizada..."
+			cont="$[${#texto} + 4]"
+			dialog --infobox "$texto" 3 $cont
+			sleep 3
+			clear
 			exit 1
 		fi
 		udevadm info -a -n /dev/input/event$i | grep -q "Microsoft X-Box 360 pad"
@@ -253,7 +247,11 @@ do
 	udevadm info -a -n /dev/input/event\$i > /usr/share/JoystickXbox360/joystick.log
 	if ! [ "\$(cat "/usr/share/JoystickXbox360/joystick.log")" ]; then
 		clear
-		read -p "Porta do joystick não localizada... Aperte Enter para sair." erro
+		texto="Porta do joystick não localizada..."
+		cont="\$[\${#texto} + 4]"
+		dialog --infobox "\$texto" 3 \$cont
+		sleep 3
+		clear
 		echo -e "Joystick Xbox 360\e[31;1m falhou\e[0m..." >\
 		  /usr/share/JoystickXbox360/joystickxbox360.conf
 		exit 1
@@ -270,12 +268,13 @@ do
 done
 sleep 5
 clear
-xbox=\$(dialog --radiolist "ESCOLHA A CONFIGURAÇÃO DESEJADA\n(SETAS PARA ESCOLHER, \
-ESPAÇO PARA MUDAR\nE ENTER PARA CONFIRMAR\nCTRL + C PARA SAIR)" 15 76 4 \
-"1" "PARA CONFIGURAÇÃO PADRÃO" ON  \
-"2" "PARA CONFIGURAÇÃO COM ANALÓGICO ESQUERDO COM SENTIDO INVERTIDO" OFF \
-"3" "PARA CONFIGURAÇÃO COM ANALÓGICO DIREITO COM SENTIDO INVERTIDO" OFF \
-"4" "PARA CONFIGURAÇÃO COM 2 ANALÓGICOS COM SENTIDO INVERTIDO" OFF \
+texto="PARA CONFIGURAÇÃO COM ANALÓGICO ESQUERDO COM SENTIDO INVERTIDO"
+cont="\$[\${#texto} + 10]"
+xbox=\$(dialog --title "MENU" --menu "ESCOLHA A CONFIGURAÇÃO DESEJADA\n(SETAS PARA ESCOLHER E ENTER PARA CONFIRMAR)" 12 \$cont 4 \
+"1" "PARA CONFIGURAÇÃO PADRÃO" \
+"2" "PARA CONFIGURAÇÃO COM ANALÓGICO ESQUERDO COM SENTIDO INVERTIDO" \
+"3" "PARA CONFIGURAÇÃO COM ANALÓGICO DIREITO COM SENTIDO INVERTIDO" \
+"4" "PARA CONFIGURAÇÃO COM 2 ANALÓGICOS COM SENTIDO INVERTIDO" \
 --stdout)
 clear
 case \$xbox in
@@ -323,6 +322,14 @@ BTN_THUMB2=a,BTN_THUMB=b,BTN_BASE3=back,BTN_BASE4=start,BTN_BASE=lt,BTN_BASE2=rt
 BTN_PINKIE=rb,BTN_BASE5=tl,BTN_BASE6=tr --mimic-xpad --silent
 $fim
 	;;
+	*)
+	texto="Configuração cancelada..."
+	cont="\$[\${#texto} + 4]"
+	dialog --infobox "\$texto" 3 \$cont
+	sleep 3
+	clear
+	exit 0
+	;;
 esac
 configuracao="opção \$xbox selecionada: \$(cat /usr/share/JoystickXbox360/status.conf)"
 cont="\$[\${#configuracao} + 4]"
@@ -339,7 +346,11 @@ do
 	udevadm info -a -n /dev/input/event\$i > /usr/share/JoystickXbox360/joystick.log
 	if ! [ "\$(cat "/usr/share/JoystickXbox360/joystick.log")"" ]; then
 		clear
-		read -p "Porta do joystick Xbox 360 emulado não localizada... Aperte Enter para sair." erro
+		texto="Porta do joystick Xbox 360 emulado não localizada..."
+		cont="\$[\${#texto} + 4]"
+		dialog --infobox "\$texto" 3 \$cont
+		sleep 3
+		clear
 		echo -e "Joystick Xbox 360\e[31;1m falhou\e[0m..." >\
 		 /usr/share/JoystickXbox360/joystickxbox360.conf
 		exit 1
@@ -386,7 +397,12 @@ while true
 do
 	udevadm info -a -n /dev/input/event\$i > /usr/share/JoystickXbox360/joystick.log
 	if ! [ "\$(cat "/usr/share/JoystickXbox360/joystick.log")" ]; then
-		read -p "Porta do joystick não localizada... Aperte Enter para sair." erro
+		clear
+		texto="Porta do joystick não localizada..."
+		cont="\$[\${#texto} + 4]"
+		dialog --infobox "\$texto" 3 \$cont
+		sleep 3
+		clear
 		echo -e "Joystick Xbox 360\e[31;1m falhou\e[0m..." >\
 		 /usr/share/JoystickXbox360/joystickxbox360.conf
 		exit 1
@@ -409,7 +425,12 @@ while true
 do
 	udevadm info -a -n /dev/input/event\$i > /usr/share/JoystickXbox360/joystick.log
 	if ! [ "\$(cat "/usr/share/JoystickXbox360/joystick.log")" ]; then
-		read -p "Porta do joystick Xbox 360 emulado não localizada... Aperte Enter para sair." erro
+		clear
+		texto="Porta do joystick Xbox 360 emulado não localizada..."
+		cont="\$[\${#texto} + 4]"
+		dialog --infobox "\$texto" 3 \$cont
+		sleep 3
+		clear
 		echo -e "Joystick Xbox 360\e[31;1m falhou\e[0m..." >\
 		 /usr/share/JoystickXbox360/joystickxbox360.conf
 		exit 1
@@ -440,7 +461,12 @@ while true
 do
 	udevadm info -a -n /dev/input/event\$i > /usr/share/JoystickXbox360/joystick.log
 	if ! [ "\$(cat "/usr/share/JoystickXbox360/joystick.log")" ]; then
-		read -p "Porta do joystick não localizada... Aperte Enter para sair." erro
+		clear
+		texto="Porta do joystick não localizada..."
+		cont="\$[\${#texto} + 4]"
+		dialog --infobox "\$texto" 3 \$cont
+		sleep 3
+		clear
 		echo -e "Joystick Xbox 360\e[31;1m falhou\e[0m..." >\
 		 /usr/share/JoystickXbox360/joystickxbox360.conf
 		exit 1
@@ -463,7 +489,12 @@ while true
 do
 	udevadm info -a -n /dev/input/event\$i > /usr/share/JoystickXbox360/joystick.log
 	if ! [ "\$(cat "/usr/share/JoystickXbox360/joystick.log")" ]; then
-		read -p "Porta do joystick Xbox 360 emulado não localizada... Aperte Enter para sair." erro
+		clear
+		texto="Porta do joystick Xbox 360 emulado não localizada..."
+		cont="\$[\${#texto} + 4]"
+		dialog --infobox "\$texto" 3 \$cont
+		sleep 3
+		clear
 		echo -e "Joystick Xbox 360\e[31;1m falhou\e[0m..." >\
 		 /usr/share/JoystickXbox360/joystickxbox360.conf
 		exit 1
@@ -833,7 +864,7 @@ opção escolhida agora - Opção $xbox." 6 65
 	dialog --infobox "$texto" 3 $cont
 	sleep 3
 	clear
-	exit 1
+	exit 0
 	;;
 esac
 
