@@ -8,7 +8,9 @@ Cria atalhos para a Área de trabalho e no menu dos aplicativos do sistema.
 
 ## Dependências
 
-- xboxdrv antimicro dialog
+- xboxdrv
+- antimicro
+- dialog (**dialog** está disponível em diversas distribuições baseada em Debian, caso não haja será instalado automaticamente.)
 
 ## Totalmente automatizado.
 
