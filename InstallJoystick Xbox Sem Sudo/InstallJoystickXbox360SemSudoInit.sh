@@ -6,7 +6,7 @@ if ! [ -e "/usr/bin/dialog" ]; then
 else
 	senha=$(dialog --title "AUTORIZAÇÃO" --passwordbox "Digite a senha (SUDO):" 8 40 --stdout)
 fi
-if [ -z "\$senha" ]; then
+if [ -z "$senha" ]; then
 	dialog --title "ERRO" --infobox "A senha (SUDO) não foi digitada." 3 40
 	sleep 3
 	clear
