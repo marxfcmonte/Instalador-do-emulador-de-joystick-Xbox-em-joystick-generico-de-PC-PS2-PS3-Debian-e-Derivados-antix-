@@ -4,9 +4,16 @@ if [ "$USER" != "root" ]; then
 	echo "Use comando 'sudo'  ou comando 'su' antes de inicializar o programa."
 	exit 1
 fi
+
 if ! [ -e "/usr/bin/dialog" ]; then
-	apt install -y dialog
+	echo -e "Dialog não instalado e será instaladp...\n"
+	sudo apt install -y dialog
 fi
+if ! [ -e "/usr/bin/roxterm" ]; then
+	echo -e "Roxterm não instalado e será instaladp...\n"
+	apt install -y roxterm
+fi
+
 texto="Instalador do emulador de joystick Xbox 360 v 1.8.1 (2025)"
 cont="$[${#texto} + 4]"
 dialog --title "Desenvolvedor" --infobox "Desenvolvido por Marx F. C. Monte\n
@@ -252,14 +259,14 @@ do
 		dialog --infobox "\$texto" 3 \$cont
 		sleep 3
 		clear
-		echo -e "Joystick Xbox 360\e[31;1m falhou\e[0m..." >\
+		echo -e "Joystick Xbox 360\033[31;1m falhou\033[0m..." >\
 		  /usr/share/JoystickXbox360/joystickxbox360.conf
 		exit 1
 	fi
 	udevadm info -a -n /dev/input/event\$i | grep -q "Joystick"
 	if [ "\$?" = "0" ]; then
 		dialog --infobox "Porta do joystick localizada..." 3 35
-		echo -e "Joystick Xbox 360\e[32;1m iniciado\e[0m..." >\
+		echo -e "Joystick Xbox 360\033[32;1m iniciado\033[0m..." >\
 		  /usr/share/JoystickXbox360/joystickxbox360.conf
 		jost=\$i
 		break
@@ -351,14 +358,14 @@ do
 		dialog --infobox "\$texto" 3 \$cont
 		sleep 3
 		clear
-		echo -e "Joystick Xbox 360\e[31;1m falhou\e[0m..." >\
+		echo -e "Joystick Xbox 360\033[31;1m falhou\033[0m..." >\
 		 /usr/share/JoystickXbox360/joystickxbox360.conf
 		exit 1
 	fi
 	udevadm info -a -n /dev/input/event\$i | grep -q "Microsoft X-Box 360 pad"
 	if [ "\$?" = "0" ]; then
 		dialog --infobox "Porta do joystick Xbox 360 emulado localizada..." 3 52
-		echo -e "Joystick Xbox 360\e[32;1m iniciado\e[0m..." >\
+		echo -e "Joystick Xbox 360\033[32;1m iniciado\033[0m..." >\
 		 /usr/share/JoystickXbox360/joystickxbox360.conf
 		jost1=\$i
 		break
@@ -403,14 +410,14 @@ do
 		dialog --infobox "\$texto" 3 \$cont
 		sleep 3
 		clear
-		echo -e "Joystick Xbox 360\e[31;1m falhou\e[0m..." >\
+		echo -e "Joystick Xbox 360\033[31;1m falhou\033[0m..." >\
 		 /usr/share/JoystickXbox360/joystickxbox360.conf
 		exit 1
 	fi
 	udevadm info -a -n /dev/input/event\$i | grep -q "Joystick"
 	if [ "\$?" = "0" ]; then
 		echo -e "\nPorta do joystick localizada..."
-		echo -e "Joystick Xbox 360\e[32;1m reiniciado\e[0m..." >\
+		echo -e "Joystick Xbox 360\033[32;1m reiniciado\033[0m..." >\
 		 /usr/share/JoystickXbox360/joystickxbox360.conf
 		jost=\$i
 		break
@@ -431,14 +438,14 @@ do
 		dialog --infobox "\$texto" 3 \$cont
 		sleep 3
 		clear
-		echo -e "Joystick Xbox 360\e[31;1m falhou\e[0m..." >\
+		echo -e "Joystick Xbox 360\033[31;1m falhou\033[0m..." >\
 		 /usr/share/JoystickXbox360/joystickxbox360.conf
 		exit 1
 	fi
 	udevadm info -a -n /dev/input/event\$i | grep -q "Microsoft X-Box 360 pad"
 	if [ "\$?" = "0" ]; then
 		echo "Porta do joystick Xbox 360 emulado localizada..."
-		echo -e "Joystick Xbox 360\e[32;1m iniciado\e[0m..." >\
+		echo -e "Joystick Xbox 360\033[32;1m iniciado\033[0m..." >\
 		 /usr/share/JoystickXbox360/joystickxbox360.conf
 		jost1=\$i
 		break
@@ -467,14 +474,14 @@ do
 		dialog --infobox "\$texto" 3 \$cont
 		sleep 3
 		clear
-		echo -e "Joystick Xbox 360\e[31;1m falhou\e[0m..." >\
+		echo -e "Joystick Xbox 360\033[31;1m falhou\033[0m..." >\
 		 /usr/share/JoystickXbox360/joystickxbox360.conf
 		exit 1
 	fi
 	udevadm info -a -n /dev/input/event\$i | grep -q "Joystick"
 	if [ "\$?" = "0" ]; then
 		echo -e "\nPorta do joystick localizada..."
-		echo -e "Joystick Xbox 360\e[32;1m reiniciado\e[0m..." >\
+		echo -e "Joystick Xbox 360\033[32;1m reiniciado\033[0m..." >\
 		 /usr/share/JoystickXbox360/joystickxbox360.conf
 		jost=\$i
 		break
@@ -495,14 +502,14 @@ do
 		dialog --infobox "\$texto" 3 \$cont
 		sleep 3
 		clear
-		echo -e "Joystick Xbox 360\e[31;1m falhou\e[0m..." >\
+		echo -e "Joystick Xbox 360\033[31;1m falhou\033[0m..." >\
 		 /usr/share/JoystickXbox360/joystickxbox360.conf
 		exit 1
 	fi
 	udevadm info -a -n /dev/input/event\$i | grep -q "Microsoft X-Box 360 pad"
 	if [ "\$?" = "0" ]; then
 		echo "Porta do joystick Xbox 360 emulado localizada..."
-		echo -e "Joystick Xbox 360\e[32;1m reiniciado\e[0m..." >\
+		echo -e "Joystick Xbox 360\033[32;1m reiniciado\033[0m..." >\
 		 /usr/share/JoystickXbox360/joystickxbox360.conf
 		jost1=\$i
 		break
@@ -510,7 +517,7 @@ do
 	i=\$[ i + 1 ]
 done
 chmod 775 /dev/input/event\$jost1
-echo -e "\e[31;1mAGUARDE...\e[0m"
+echo -e "\033[31;1mAGUARDE...\033[0m"
 sleep 60
 
 exit 0
