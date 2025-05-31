@@ -233,10 +233,13 @@ EOF
 	joystickconf="$(cat /usr/share/JoystickXbox360/xboxdrv.conf)"
 	fim="EOF"
 	cat <<EOF > /usr/share/JoystickXbox360/MudarControle.sh
-#!/bin/bash
+#!$SHELL
+
 senha=\$(dialog --title "AUTORIZAÇÃO" --passwordbox "Digite a senha (SUDO):" 8 40 --stdout)
 if [ -z "\$senha" ]; then
 	dialog --title "ERRO" --infobox "A senha (SUDO) não foi digitada." 3 40
+	sleep 3
+	clear
 	exit 1
 fi
 clear
@@ -395,7 +398,7 @@ exit 0
 
 EOF
 	cat <<EOF > /usr/share/JoystickXbox360/StartJoystick.sh
-#!/bin/bash
+#!$SHELL
 
 pkill xboxdrv &
 sleep 5
@@ -459,7 +462,7 @@ exit 0
 
 EOF
 	cat <<EOF > /usr/share/JoystickXbox360/RStarJoystick.sh
-#!/bin/bash
+#!$SHELL
 
 pkill xboxdrv &
 sleep 5
@@ -549,7 +552,7 @@ EOF
 		mv /tmp/xbox360preto.png /usr/share/pixmaps/JoystickXbox360
 	fi
 	cat <<EOF > /usr/share/JoystickXbox360/StopJoystick.sh
-#!/bin/bash
+#!$SHELL
 
 pkill xboxdrv &
 sleep 2
