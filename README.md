@@ -1,6 +1,6 @@
 # Instalador do emulador de joystick Xbox para joystick generico para PC, PS2, PS3 (Debian e Derivados antiX)
 
-Os arquivos InstallJoystickXbox360.sh, InstallJoystickXbox360 e InstallJoystickXbox.deb  podem ser executados no terminal como root, usando o comando sudo ou su.
+Os arquivos InstallJoystickXbox360.sh, InstallJoystickXbox360 e InstallJoystickXbox.deb  devem ser executados no terminal como root, usando o comando sudo ou su. O Programa reconhe joysticks genéricos USB e joysticks genéricos sem fio que usam receptor (wireless) que se conecta na porta USB.
 
 Ele desenvolve três softwares, um para restabelecer a emulação do joystick Xbox 360, um para encerrar o serviço de emulação do joystick Xbox 360 e, por fim, um para configurar o joystick. Além disso, permite que o serviço de emulação do joystick Xbox 360 seja iniciado automaticamente com a inicialização do sistema. (SysV)
 
