@@ -11,7 +11,7 @@ if ! [ -e "/usr/bin/dialog" ]; then
 fi
 if ! [ -e "/usr/bin/roxterm" ]; then
 	echo -e "Roxterm não instalado e será instaladp...\n"
-	apt install -y roxterm
+	sudo apt install -y roxterm
 fi
 
 texto="Instalador do emulador de joystick Xbox 360 v 1.8.1 (2025)"
@@ -31,17 +31,15 @@ opcao=$(dialog --title "MENU" --menu "$texto" 10 $cont 3 \
 clear
 case $opcao in
 	1)
-	texto="PARA CONFIGURAÇÃO COM ANALÓGICO ESQUERDO COM SENTIDO INVERTIDO"
+	texto="PARA CONFIGURAÇÃO COM ANALÓGICOS COM SENTIDO INVERTIDO"
 	cont="$[${#texto} + 10]"
-	xbox=$(dialog --title "MENU" --menu "ESCOLHA A CONFIGURAÇÃO DESEJADA\n(SETAS PARA ESCOLHER E ENTER PARA CONFIRMAR)" 12 $cont 4 \
+	xbox=$(dialog --title "MENU" --menu "ESCOLHA A CONFIGURAÇÃO DESEJADA\n(SETAS PARA ESCOLHER E ENTER PARA CONFIRMAR)" 10 $cont 2 \
 "1" "PARA CONFIGURAÇÃO PADRÃO" \
-"2" "PARA CONFIGURAÇÃO COM ANALÓGICO ESQUERDO COM SENTIDO INVERTIDO" \
-"3" "PARA CONFIGURAÇÃO COM ANALÓGICO DIREITO COM SENTIDO INVERTIDO" \
-"4" "PARA CONFIGURAÇÃO COM 2 ANALÓGICOS COM SENTIDO INVERTIDO" \
+"2" "PARA CONFIGURAÇÃO COM ANALÓGICOS COM SENTIDO INVERTIDO" \
 --stdout)
 	clear
 	case $xbox in
-		1|2|3|4)
+		1|2)
 		if [ -d "/usr/share/JoystickXbox360" ]; then
 			texto="O diretório JoystickXbox360 existe..."
 			cont="$[${#texto} + 4]"
@@ -57,6 +55,8 @@ case $opcao in
 			mkdir /usr/share/JoystickXbox360
 		fi
 		;;
+	esac
+	case $xbox in
 		1)
 		cat <<EOF > /usr/share/JoystickXbox360/status.conf
 configuração padrão...
@@ -64,17 +64,7 @@ EOF
 		;;
 		2)
 		cat <<EOF > /usr/share/JoystickXbox360/status.conf
-analógico esquerdo com sentido invertido...
-EOF
-		;;
-		3)
-		cat <<EOF > /usr/share/JoystickXbox360/status.conf
-analógico direito com sentido invertido.
-EOF
-		;;
-		4)
-		cat <<EOF > /usr/share/JoystickXbox360/status.conf
-2 analógicos com sentido invertido...
+analógicos com sentido invertido...
 EOF
 		;;
 		*)
@@ -100,7 +90,7 @@ EOF
 		clear
 	else
 		apt update && apt-get upgrade -y
-		apt install -y xboxdrv antimicro dialog
+		apt install -y xboxdrv antimicro dialog evtest
 	fi
 	if [ -e "/usr/share/JoystickXbox360/install.conf" ]; then
 		texto="O arquivo install.conf existe..."
@@ -137,6 +127,12 @@ EOF
 			texto="Porta do joystick localizada..."
 			cont="$[${#texto} + 4]"
 			dialog --infobox "$texto" 3 $cont
+			evtest /dev/input/event$i > /usr/share/JoystickXbox360/controle.conf & pkill evtest
+			cat /usr/share/JoystickXbox360/controle.conf | grep "ABS_" | cut -d "(" -f2 > /usr/share/JoystickXbox360/controle1.conf
+			cat /usr/share/JoystickXbox360/controle.conf | grep "BTN_" | cut -d "(" -f2 >> /usr/share/JoystickXbox360/controle1.conf
+			cat /usr/share/JoystickXbox360/controle1.conf | grep ")" | cut -d ")" -f1 > /usr/share/JoystickXbox360/controle.conf
+			rm /usr/share/JoystickXbox360/controle1.conf
+			var=($(cat /usr/share/JoystickXbox360/controle.conf))
 			sleep 3
 			clear
 			jost=$i
@@ -145,10 +141,10 @@ EOF
 		i=$[ i + 1 ]
 	done
 	chmod 775 /dev/input/event$jost
-	xboxdrv --evdev /dev/input/event$jost --evdev-absmap ABS_X=x1,ABS_Y=y1,ABS_RZ=y2,\
-ABS_Z=x2,ABS_HAT0X=dpad_x,ABS_HAT0Y=dpad_y --axismap -Y1=Y1,-Y2=Y2 --evdev-keymap BTN_TOP=x,\
-BTN_TRIGGER=y,BTN_THUMB2=a,BTN_THUMB=b,BTN_BASE3=back,BTN_BASE4=start,BTN_BASE=lt,BTN_BASE2=rt,\
-BTN_TOP2=lb,BTN_PINKIE=rb,BTN_BASE5=tl,BTN_BASE6=tr --mimic-xpad --silent > /tmp/joystick.log &
+	xboxdrv --evdev /dev/input/event$jost --evdev-absmap "${var[0]}"=x1,"${var[1]}"=y1,"${var[2]}"=x2,"${var[3]}"=y2,\
+"${var[4]}"=dpad_x,"${var[5]}"=dpad_y --axismap -Y1=Y1,-Y2=Y2 --evdev-keymap "${var[6]}"=y,"${var[7]}"=b,\
+"${var[8]}"=a,"${var[9]}"=x,"${var[10]}"=lb,"${var[11]}"=rb,"${var[12]}"=lt,"${var[13]}"=rt,"${var[14]}"=back,"${var[15]}"=start,\
+"${var[16]}"=tl,"${var[17]}"=tr --mimic-xpad --silent > /tmp/joystick.log &
 	sleep 5
 	i=0
 	while true
@@ -199,34 +195,18 @@ EOF
 	case $xbox in
 		1)
 		cat <<EOF > /usr/share/JoystickXbox360/xboxdrv.conf
---evdev-absmap ABS_X=x1,ABS_Y=y1,ABS_RZ=y2,ABS_Z=x2,\
-ABS_HAT0X=dpad_x,ABS_HAT0Y=dpad_y --axismap -Y1=Y1,-Y2=Y2 --evdev-keymap BTN_TOP=x,\
-BTN_TRIGGER=y,BTN_THUMB2=a,BTN_THUMB=b,BTN_BASE3=back,BTN_BASE4=start,BTN_BASE=lt,BTN_BASE2=rt,\
-BTN_TOP2=lb,BTN_PINKIE=rb,BTN_BASE5=tl,BTN_BASE6=tr --mimic-xpad --silent
+--evdev-absmap ${var[0]}=x1,${var[1]}=y1,${var[2]}=x2,${var[3]}=y2,\
+${var[4]}=dpad_x,${var[5]}=dpad_y --axismap -Y1=Y1,-Y2=Y2 --evdev-keymap ${var[6]}=y,${var[7]}=b,\
+${var[8]}=a,${var[9]}=x,${var[10]}=lb,${var[11]}=rb,${var[12]}=lt,${var[13]}=rt,${var[14]}=back,${var[15]}=start,\
+${var[16]}=tl,${var[17]}=tr --mimic-xpad --silent
 EOF
 		;;
 		2)
-			cat <<EOF > /usr/share/JoystickXbox360/xboxdrv.conf
---evdev-absmap ABS_X=x1,ABS_Y=y1,ABS_RZ=y2,ABS_Z=x2,\
-ABS_HAT0X=dpad_x,ABS_HAT0Y=dpad_y --axismap Y1=Y1,Y2=Y2 --evdev-keymap BTN_TOP=x,BTN_TRIGGER=y,\
-BTN_THUMB2=a,BTN_THUMB=b,BTN_BASE3=back,BTN_BASE4=start,BTN_BASE=lt,BTN_BASE2=rt,BTN_TOP2=lb,\
-BTN_PINKIE=rb,BTN_BASE5=tl,BTN_BASE6=tr --mimic-xpad --silent
-EOF
-		;;
-		3)
 		cat <<EOF > /usr/share/JoystickXbox360/xboxdrv.conf
---evdev-absmap ABS_X=x1,ABS_Y=y1,ABS_RZ=x2,ABS_Z=y2,\
-ABS_HAT0X=dpad_x,ABS_HAT0Y=dpad_y --axismap -Y1=Y1,-Y2=Y2 --evdev-keymap BTN_TOP=x,BTN_TRIGGER=y,\
-BTN_THUMB2=a,BTN_THUMB=b,BTN_BASE3=back,BTN_BASE4=start,BTN_BASE=lt,BTN_BASE2=rt,BTN_TOP2=lb,\
-BTN_PINKIE=rb,BTN_BASE5=tl,BTN_BASE6=tr --mimic-xpad --silent
-EOF
-		;;
-		4)
-		cat <<EOF > /usr/share/JoystickXbox360/xboxdrv.conf
---evdev-absmap ABS_X=x1,ABS_Y=y1,ABS_RZ=x2,ABS_Z=y2,\
-ABS_HAT0X=dpad_x,ABS_HAT0Y=dpad_y --axismap Y1=Y1,Y2=Y2 --evdev-keymap BTN_TOP=x,BTN_TRIGGER=y,\
-BTN_THUMB2=a,BTN_THUMB=b,BTN_BASE3=back,BTN_BASE4=start,BTN_BASE=lt,BTN_BASE2=rt,BTN_TOP2=lb,\
-BTN_PINKIE=rb,BTN_BASE5=tl,BTN_BASE6=tr --mimic-xpad --silent
+--evdev-absmap ${var[0]}=x1,${var[1]}=y1,${var[2]}=x2,${var[3]}=y2,\
+${var[4]}=dpad_x,${var[5]}=dpad_y --axismap Y1=Y1,Y2=Y2 --evdev-keymap ${var[6]}=y,${var[7]}=b,\
+${var[8]}=a,${var[9]}=x,${var[10]}=lb,${var[11]}=rb,${var[12]}=lt,${var[13]}=rt,${var[14]}=back,${var[15]}=start,\
+${var[16]}=tl,${var[17]}=tr --mimic-xpad --silent
 EOF
 		;;
 	esac
@@ -250,6 +230,9 @@ sudo chown $SUDO_USER:$SUDO_USER /usr/share/JoystickXbox360/joystick1.log
 sudo chown $SUDO_USER:$SUDO_USER /usr/share/JoystickXbox360/joystickxbox360.conf
 sudo chown $SUDO_USER:$SUDO_USER /usr/share/JoystickXbox360/status.conf
 sudo chown $SUDO_USER:$SUDO_USER /usr/share/JoystickXbox360/xboxdrv.conf
+sudo chown $SUDO_USER:$SUDO_USER /usr/share/JoystickXbox360/controle.conf
+sudo touch /usr/share/JoystickXbox360/controle1.conf
+sudo chown $SUDO_USER:$SUDO_USER /usr/share/JoystickXbox360/controle1.conf
 sleep 5
 i=0
 while true
@@ -272,19 +255,25 @@ do
 		echo -e "Joystick Xbox 360\033[32;1m iniciado\033[0m..." >\
 		  /usr/share/JoystickXbox360/joystickxbox360.conf
 		jost=\$i
+		sudo evtest /dev/input/event\$i > /usr/share/JoystickXbox360/controle.conf & sudo pkill evtest
+		cat /usr/share/JoystickXbox360/controle.conf | grep "ABS_" | cut -d "(" -f2 > /usr/share/JoystickXbox360/controle1.conf
+		cat /usr/share/JoystickXbox360/controle.conf | grep "BTN_" | cut -d "(" -f2 >> /usr/share/JoystickXbox360/controle1.conf
+		cat /usr/share/JoystickXbox360/controle1.conf | grep ")" | cut -d ")" -f1 > /usr/share/JoystickXbox360/controle.conf
+		rm /usr/share/JoystickXbox360/controle1.conf
+		var=(\$(cat /usr/share/JoystickXbox360/controle.conf))
+		sleep 3
+		clear
 		break
 	fi
 	i=\$[ i + 1 ]
 done
 sleep 5
 clear
-texto="PARA CONFIGURAÇÃO COM ANALÓGICO ESQUERDO COM SENTIDO INVERTIDO"
+texto="PARA CONFIGURAÇÃO COM ANALÓGICOS COM SENTIDO INVERTIDO"
 cont="\$[\${#texto} + 10]"
-xbox=\$(dialog --title "MENU" --menu "ESCOLHA A CONFIGURAÇÃO DESEJADA\n(SETAS PARA ESCOLHER E ENTER PARA CONFIRMAR)" 12 \$cont 4 \
+xbox=\$(dialog --title "MENU" --menu "ESCOLHA A CONFIGURAÇÃO DESEJADA\n(SETAS PARA ESCOLHER E ENTER PARA CONFIRMAR)" 10 \$cont 4 \
 "1" "PARA CONFIGURAÇÃO PADRÃO" \
-"2" "PARA CONFIGURAÇÃO COM ANALÓGICO ESQUERDO COM SENTIDO INVERTIDO" \
-"3" "PARA CONFIGURAÇÃO COM ANALÓGICO DIREITO COM SENTIDO INVERTIDO" \
-"4" "PARA CONFIGURAÇÃO COM 2 ANALÓGICOS COM SENTIDO INVERTIDO" \
+"2" "PARA CONFIGURAÇÃO COM ANALÓGICOS COM SENTIDO INVERTIDO" \
 --stdout)
 clear
 case \$xbox in
@@ -293,43 +282,21 @@ case \$xbox in
 configuração padrão...
 $fim
 	cat <<$fim > /usr/share/JoystickXbox360/xboxdrv.conf
---evdev-absmap ABS_X=x1,ABS_Y=y1,ABS_RZ=y2,ABS_Z=x2,\
-ABS_HAT0X=dpad_x,ABS_HAT0Y=dpad_y --axismap -Y1=Y1,-Y2=Y2 --evdev-keymap BTN_TOP=x,\
-BTN_TRIGGER=y,BTN_THUMB2=a,BTN_THUMB=b,BTN_BASE3=back,BTN_BASE4=start,BTN_BASE=lt,BTN_BASE2=rt,\
-BTN_TOP2=lb,BTN_PINKIE=rb,BTN_BASE5=tl,BTN_BASE6=tr --mimic-xpad --silent
+--evdev-absmap \${var[0]}=x1,\${var[1]}=y1,\${var[2]}=x2,\${var[3]}=y2,\
+\${var[4]}=dpad_x,\${var[5]}=dpad_y --axismap -Y1=Y1,-Y2=Y2 --evdev-keymap \${var[6]}=y,\${var[7]}=b,\
+\${var[8]}=a,\${var[9]}=x,\${var[10]}=lb,\${var[11]}=rb,\${var[12]}=lt,\${var[13]}=rt,\${var[14]}=back,\${var[15]}=start,\
+\${var[16]}=tl,\${var[17]}=tr --mimic-xpad --silent
 $fim
 	;;
 	2)
 	cat <<$fim > /usr/share/JoystickXbox360/status.conf
-analógico esquerdo com sentido invertido...
+analógicos com sentido invertido...
 $fim
 	cat <<$fim > /usr/share/JoystickXbox360/xboxdrv.conf
---evdev-absmap ABS_X=x1,ABS_Y=y1,ABS_RZ=y2,ABS_Z=x2,\
-ABS_HAT0X=dpad_x,ABS_HAT0Y=dpad_y --axismap Y1=Y1,Y2=Y2 --evdev-keymap BTN_TOP=x,BTN_TRIGGER=y,\
-BTN_THUMB2=a,BTN_THUMB=b,BTN_BASE3=back,BTN_BASE4=start,BTN_BASE=lt,BTN_BASE2=rt,BTN_TOP2=lb,\
-BTN_PINKIE=rb,BTN_BASE5=tl,BTN_BASE6=tr --mimic-xpad --silent
-$fim
-	;;
-	3)
-	cat <<$fim > /usr/share/JoystickXbox360/status.conf
-analógico direito com sentido invertido...
-$fim
-	cat <<$fim > /usr/share/JoystickXbox360/xboxdrv.conf
---evdev-absmap ABS_X=x1,ABS_Y=y1,ABS_RZ=x2,ABS_Z=y2,\
-ABS_HAT0X=dpad_x,ABS_HAT0Y=dpad_y --axismap -Y1=Y1,-Y2=Y2 --evdev-keymap BTN_TOP=x,BTN_TRIGGER=y,\
-BTN_THUMB2=a,BTN_THUMB=b,BTN_BASE3=back,BTN_BASE4=start,BTN_BASE=lt,BTN_BASE2=rt,BTN_TOP2=lb,\
-BTN_PINKIE=rb,BTN_BASE5=tl,BTN_BASE6=tr --mimic-xpad --silent
-$fim
-	;;
-	4)
-	cat <<$fim > /usr/share/JoystickXbox360/status.conf
-2 analógicos com sentido invertido...
-$fim
-	cat <<$fim > /usr/share/JoystickXbox360/xboxdrv.conf
---evdev-absmap ABS_X=x1,ABS_Y=y1,ABS_RZ=x2,ABS_Z=y2,\
-ABS_HAT0X=dpad_x,ABS_HAT0Y=dpad_y --axismap Y1=Y1,Y2=Y2 --evdev-keymap BTN_TOP=x,BTN_TRIGGER=y,\
-BTN_THUMB2=a,BTN_THUMB=b,BTN_BASE3=back,BTN_BASE4=start,BTN_BASE=lt,BTN_BASE2=rt,BTN_TOP2=lb,\
-BTN_PINKIE=rb,BTN_BASE5=tl,BTN_BASE6=tr --mimic-xpad --silent
+--evdev-absmap \${var[0]}=x1,\${var[1]}=y1,\${var[2]}=x2,\${var[3]}=y2,\
+\${var[4]}=dpad_x,\${var[5]}=dpad_y --axismap Y1=Y1,Y2=Y2 --evdev-keymap \${var[6]}=y,\${var[7]}=b,\
+\${var[8]}=a,\${var[9]}=x,\${var[10]}=lb,\${var[11]}=rb,\${var[12]}=lt,\${var[13]}=rt,\${var[14]}=back,\${var[15]}=start,\
+\${var[16]}=tl,\${var[17]}=tr --mimic-xpad --silent
 $fim
 	;;
 	*)
@@ -354,7 +321,7 @@ i=0
 while true
 do
 	udevadm info -a -n /dev/input/event\$i > /usr/share/JoystickXbox360/joystick.log
-	if ! [ "\$(cat "/usr/share/JoystickXbox360/joystick.log")"" ]; then
+	if ! [ "\$(cat "/usr/share/JoystickXbox360/joystick.log")" ]; then
 		clear
 		texto="Porta do joystick Xbox 360 emulado não localizada..."
 		cont="\$[\${#texto} + 4]"
@@ -379,19 +346,20 @@ sudo chown root:root /usr/share/JoystickXbox360/joystick.log
 sudo chown root:root /usr/share/JoystickXbox360/joystickxbox360.conf
 sudo chown root:root /usr/share/JoystickXbox360/status.conf
 sudo chown root:root /usr/share/JoystickXbox360/xboxdrv.conf
+sudo chown root:root /usr/share/JoystickXbox360/controle.conf
 sudo chmod 775 /dev/input/event\$jost1
 sleep 6
 clear
 sudo service joystickxbox360 status
 sleep 6
 clear
-dialog --infobox "Teste o Joystick Xbox 360 emulado no AntiMicroX caso algum\n
-dos analógicos ficar com sentido invertido,\
+dialog --infobox "Teste o Joystick Xbox 360 emulado no AntiMicroX caso\n
+os analógicos ficarem com sentido invertido,\
  use o aplicativo 'Muda a configuração do joystick Xbox 360': \n
 opção escolhida agora - Opção \$xbox." 6 65
 
 sleep 20
-clear
+reset
 antimicrox
 
 exit 0
@@ -408,11 +376,7 @@ do
 	udevadm info -a -n /dev/input/event\$i > /usr/share/JoystickXbox360/joystick.log
 	if ! [ "\$(cat "/usr/share/JoystickXbox360/joystick.log")" ]; then
 		clear
-		texto="Porta do joystick não localizada..."
-		cont="\$[\${#texto} + 4]"
-		dialog --infobox "\$texto" 3 \$cont
-		sleep 3
-		clear
+		echo -e "\nPorta do joystick não localizada..."
 		echo -e "Joystick Xbox 360\033[31;1m falhou\033[0m..." >\
 		 /usr/share/JoystickXbox360/joystickxbox360.conf
 		exit 1
@@ -436,11 +400,7 @@ do
 	udevadm info -a -n /dev/input/event\$i > /usr/share/JoystickXbox360/joystick.log
 	if ! [ "\$(cat "/usr/share/JoystickXbox360/joystick.log")" ]; then
 		clear
-		texto="Porta do joystick Xbox 360 emulado não localizada..."
-		cont="\$[\${#texto} + 4]"
-		dialog --infobox "\$texto" 3 \$cont
-		sleep 3
-		clear
+		echo -e "Porta do joystick Xbox 360 emulado não localizada..."
 		echo -e "Joystick Xbox 360\033[31;1m falhou\033[0m..." >\
 		 /usr/share/JoystickXbox360/joystickxbox360.conf
 		exit 1
@@ -679,7 +639,7 @@ EOF
 		cont="$[${#texto} + 4]"
 		dialog --infobox "$texto" 3 $cont
 		sleep 3
-		clear
+		reset
 		sed '/^$/d' /etc/sudoers > /tmp/temp.conf && mv /tmp/temp.conf /etc/sudoers
 		echo "$SUDO_USER ALL=NOPASSWD: /etc/init.d/joystickxbox360" >> /etc/sudoers
 	else
@@ -687,7 +647,7 @@ EOF
 		cont="$[${#texto} + 4]"
 		dialog --infobox "$texto" 3 $cont
 		sleep 3
-		clear
+		reset
 	fi
 	desktop-menu --write-out-global
 	texto="Testanto o serviço Joystickxbox360"
@@ -699,12 +659,12 @@ EOF
 	service joystickxbox360 status
 	sleep 6
 	clear
-	dialog --infobox "Teste o Joystick Xbox 360 emulado no AntiMicroX caso algum\n
-dos analógicos ficar com sentido invertido,\
+	dialog --infobox "Teste o Joystick Xbox 360 emulado no AntiMicroX caso\n
+os analógicos ficarem com sentido invertido,\
  use o aplicativo 'Muda a configuração do joystick Xbox 360': \n
 opção escolhida agora - Opção $xbox." 6 65
 	sleep 20
-	clear
+	reset
 	antimicrox
 	;;
 	2)
@@ -843,7 +803,7 @@ opção escolhida agora - Opção $xbox." 6 65
 		cont="$[${#texto} + 4]"
 		dialog --infobox "$texto" 3 $cont
 		sleep 3
-		clear
+		reset
 	else
 		texto="A configuração será deletada..."
 		cont="$[${#texto} + 4]"
@@ -856,9 +816,10 @@ opção escolhida agora - Opção $xbox." 6 65
 		cont="$[${#texto} + 4]"
 		dialog --infobox "$texto" 3 $cont
 		sleep 3
-		clear
-		apt remove -y xboxdrv antimicro
+		reset
+		apt remove -y xboxdrv antimicro evtest
 		apt autoremove -y
+		reset
 	fi
 	;;
 	3)
@@ -866,14 +827,14 @@ opção escolhida agora - Opção $xbox." 6 65
 	cont="$[${#texto} + 4]"
 	dialog --infobox "$texto" 3 $cont
 	sleep 3
-	clear
+	reset
 	;;
 	*)
 	texto="Instalação cancelada..."
 	cont="$[${#texto} + 4]"
 	dialog --infobox "$texto" 3 $cont
 	sleep 3
-	clear
+	reset
 	exit 0
 	;;
 esac
