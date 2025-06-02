@@ -6,6 +6,7 @@ sendo solicitado só uma vem na execução do programa.
 ## Dependências
 
 - xboxdrv
+- evtest
 - antimicro
 - dialog (A dependênia **dialog** é instalada se não houver na Ditribuição)
 - roxterm (A dependênia **roxterm** é instalada se não houver na Ditribuição)
