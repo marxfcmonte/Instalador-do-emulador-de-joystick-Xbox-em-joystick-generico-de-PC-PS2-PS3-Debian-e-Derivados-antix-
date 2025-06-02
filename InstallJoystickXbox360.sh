@@ -6,11 +6,11 @@ if [ "$USER" != "root" ]; then
 fi
 
 if ! [ -e "/usr/bin/dialog" ]; then
-	echo -e "Dialog não instalado e será instaladp...\n"
+	echo -e "Dialog não instalado e será instalado...\n"
 	sudo apt install -y dialog
 fi
 if ! [ -e "/usr/bin/roxterm" ]; then
-	echo -e "Roxterm não instalado e será instaladp...\n"
+	echo -e "Roxterm não instalado e será instalado...\n"
 	sudo apt install -y roxterm
 fi
 
