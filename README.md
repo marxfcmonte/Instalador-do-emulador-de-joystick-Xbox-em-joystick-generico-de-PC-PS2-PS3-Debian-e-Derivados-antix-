@@ -16,6 +16,6 @@ Cria atalhos para a Área de trabalho e no menu dos aplicativos do sistema.
 
 ## Totalmente automatizado.
 
-Ele reconhece o joystick e faz as configurações, apenas solicitando do usuário o perfil do joystick.
+Ele reconhece o joystick e faz as configurações, usando o evtest, apenas solicitando do usuário se será´padrão ou analógicos com sentido invertido.
 
 Agora com pacote Deb, InstallJoystickXbox.deb, para uma instalação automatizada pelo gerenciador de pacotes Deb sem precisar do terminal.
