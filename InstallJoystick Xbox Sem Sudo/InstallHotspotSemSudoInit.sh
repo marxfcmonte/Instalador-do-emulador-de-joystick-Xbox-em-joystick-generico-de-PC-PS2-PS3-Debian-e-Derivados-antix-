@@ -15,7 +15,7 @@ if [ -z "\$senha" ]; then
 fi
 clear
 if ! [ -e "/usr/bin/roxterm" ]; then
-	echo -e "Roxterm não instalado e será instaladp...\n"
+	echo -e "Roxterm não instalado e será instalado...\n"
 	echo $senha|sudo -S -p "" apt install -y roxterm
 fi
 local="$(pwd)"
