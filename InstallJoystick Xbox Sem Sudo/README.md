@@ -5,6 +5,8 @@ sendo solicitado só uma vem na execução do programa.
 
 ## Dependências
 
+- shc
+- libc6-dev
 - xboxdrv
 - evtest
 - antimicro
