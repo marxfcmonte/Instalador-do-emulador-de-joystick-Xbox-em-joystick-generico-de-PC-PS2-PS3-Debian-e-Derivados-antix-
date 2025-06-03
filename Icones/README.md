@@ -1,3 +1,4 @@
-# Pasta com ícones do instalador.
+### Pasta com os icones do programa.
 
-Os ícones serão baixados pelo instalador automaticamente.
+- Arquivos .png para serem usados pelo Instalador para criar os executáveis no Menu do Linux.
+- São baixados automaticamente pelo Instalador.
