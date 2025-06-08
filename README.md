@@ -12,10 +12,10 @@ Cria atalhos para a Área de trabalho e no menu dos aplicativos do sistema.
 - antimicro
 - evtest
 - dialog (A dependênia **dialog** é nativa em diversas distribuições baseadas em Debian, caso não haja será instalada.)
-- roxterm (A dependênia **roxterm** é nativa em diversas distribuições baseadas em Debian, caso não haja será instalada)
 
 ## Totalmente automatizado.
 
-Ele reconhece o joystick e faz as configurações, usando o evtest, apenas solicitando do usuário se será´padrão ou analógicos com sentido invertido.
+Ele reconhece o joystick e faz as configurações, usando o evtest, apenas solicitando do usuário os botões e os analógicos correspondes 
+a partir de imagens, de fácil instalação.
 
 Agora com pacote Deb, InstallJoystickXbox.deb, para uma instalação automatizada pelo gerenciador de pacotes Deb sem precisar do terminal.
