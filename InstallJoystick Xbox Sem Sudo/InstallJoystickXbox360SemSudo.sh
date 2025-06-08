@@ -1,5 +1,59 @@
 #!/bin/bash
 
+trim() {
+	# Desabilitação da verificação do shell=2048,2086
+    set -f
+    set -- $*
+    printf '%s\n' "${*//[[:space:]]/}"
+    set +f
+}
+
+Ppid(){
+	# Obter o ID do processo pai do PID
+	ppid="$(grep -i -F "PPid:" "/proc/${1:-$PPID}/status")"
+    ppid="$(trim "${ppid/PPid:}")"
+    printf "%s" "$ppid"
+
+}
+
+processo_nome() {
+    # Obter nome PID.
+    nome="$(< "/proc/${1:-$PPID}/comm")"
+    printf "%s" "$nome"
+}
+
+terminal() {
+    # Verificando $PPID para emulador de terminal.
+     while [[ -z "$term" ]]; do
+        pai="$(Ppid "$pai")"
+        [[ -z "$pai" ]] && break
+        nome="$(processo_nome "$pai")"
+
+        case ${nome// } in
+            "${SHELL/*\/}"|*"sh"|"screen"|"su"*) ;;
+
+            "login"*|*"Login"*|"init"|"(init)")
+                term="$(tty)"
+            ;;
+
+            "ruby"|"1"|"tmux"*|"systemd"|"sshd"*|"python"*|"USER"*"PID"*|"kdeinit"*|"launchd"*)
+                break
+            ;;
+
+            "gnome-terminal-") term="gnome-terminal" ;;
+            "urxvtd")          term="urxvt" ;;
+            *"nvim")           term="Neovim Terminal" ;;
+            *"NeoVimServer"*)  term="VimR Terminal" ;;
+
+            *)
+                # Corrigir problemas com nomes longos de processos no Linux
+                term="${nome##*/}"
+            ;;
+        esac
+    done
+}
+
+terminal
 texto="Instalador do emulador de joystick Xbox 360 v 1.8.1 (2025)"
 cont="$[${#texto} + 4]"
 dialog --title "Desenvolvedor" --infobox "Desenvolvido por Marx F. C. Monte\n
@@ -114,10 +168,13 @@ EOF
 			cont="$[${#texto} + 4]"
 			dialog --infobox "$texto" 3 $cont
 			evtest /dev/input/event$i > /usr/share/JoystickXbox360/controle.conf & pkill evtest
-			cat /usr/share/JoystickXbox360/controle.conf | grep "ABS_" | cut -d "(" -f2 > /usr/share/JoystickXbox360/controle1.conf
-			cat /usr/share/JoystickXbox360/controle.conf | grep "BTN_" | cut -d "(" -f2 >> /usr/share/JoystickXbox360/controle1.conf
+			cat /usr/share/JoystickXbox360/controle.conf | grep -n exit | cut -d ":" -f1 > /usr/share/JoystickXbox360/numero.conf
+			numero=$(cat /usr/share/JoystickXbox360/numero.conf)
+			sed -n "1,$numero p" /usr/share/JoystickXbox360/controle.conf >  /usr/share/JoystickXbox360/controle2.conf
+			cat /usr/share/JoystickXbox360/controle2.conf | grep ABS_ | cut -d "(" -f2 > /usr/share/JoystickXbox360/controle1.conf
+			cat /usr/share/JoystickXbox360/controle2.conf | grep BTN_ | cut -d "(" -f2 >> /usr/share/JoystickXbox360/controle1.conf
 			cat /usr/share/JoystickXbox360/controle1.conf | grep ")" | cut -d ")" -f1 > /usr/share/JoystickXbox360/controle.conf
-			rm /usr/share/JoystickXbox360/controle1.conf
+			rm /usr/share/JoystickXbox360/controle1.conf /usr/share/JoystickXbox360/controle2.conf
 			var=($(cat /usr/share/JoystickXbox360/controle.conf))
 			sleep 3
 			clear
@@ -127,10 +184,10 @@ EOF
 		i=$[ i + 1 ]
 	done
 	chmod 775 /dev/input/event$jost
-	xboxdrv --evdev /dev/input/event$jost --evdev-absmap "${var[0]}"=x1,"${var[1]}"=y1,"${var[2]}"=x2,"${var[3]}"=y2,\
-"${var[4]}"=dpad_x,"${var[5]}"=dpad_y --axismap -Y1=Y1,-Y2=Y2 --evdev-keymap "${var[6]}"=y,"${var[7]}"=b,\
-"${var[8]}"=a,"${var[9]}"=x,"${var[10]}"=lb,"${var[11]}"=rb,"${var[12]}"=lt,"${var[13]}"=rt,"${var[14]}"=back,"${var[15]}"=start,\
-"${var[16]}"=tl,"${var[17]}"=tr --mimic-xpad --silent > /tmp/joystick.log &
+	xboxdrv --evdev /dev/input/event$jost --evdev-absmap ${var[0]}=x1,${var[1]}=y1,${var[2]}=x2,${var[3]}=y2,\
+${var[4]}=dpad_x,${var[5]}=dpad_y --axismap -Y1=Y1,-Y2=Y2 --evdev-keymap ${var[6]}=y,${var[7]}=b,\
+${var[8]}=a,${var[9]}=x,${var[10]}=lb,${var[11]}=rb,${var[12]}=lt,${var[13]}=rt,${var[14]}=back,${var[15]}=start,\
+${var[16]}=tl,${var[17]}=tr --mimic-xpad --silent > /tmp/joystick.log &
 	sleep 5
 	i=0
 	while true
@@ -209,16 +266,15 @@ if [ -z "\$senha" ]; then
 	exit 1
 fi
 clear
-echo \$senha|sudo -S -p "" chown $SUDO_USER:$SUDO_USER /usr/share/JoystickXbox360/joystick.log
+echo \$senha|sudo -S -p "" chown $SUDO_USER:$SUDO_USER /usr/share/JoystickXbox360/*.log
 sudo pkill xboxdrv &
 sudo touch /usr/share/JoystickXbox360/joystick1.log
 sudo chown $SUDO_USER:$SUDO_USER /usr/share/JoystickXbox360/joystick1.log
-sudo chown $SUDO_USER:$SUDO_USER /usr/share/JoystickXbox360/joystickxbox360.conf
-sudo chown $SUDO_USER:$SUDO_USER /usr/share/JoystickXbox360/status.conf
-sudo chown $SUDO_USER:$SUDO_USER /usr/share/JoystickXbox360/xboxdrv.conf
-sudo chown $SUDO_USER:$SUDO_USER /usr/share/JoystickXbox360/controle.conf
+sudo chown $SUDO_USER:$SUDO_USER /usr/share/JoystickXbox360/*.conf
 sudo touch /usr/share/JoystickXbox360/controle1.conf
 sudo chown $SUDO_USER:$SUDO_USER /usr/share/JoystickXbox360/controle1.conf
+sudo touch /usr/share/JoystickXbox360/controle2.conf
+sudo chown $SUDO_USER:$SUDO_USER /usr/share/JoystickXbox360/controle2.conf
 sleep 5
 i=0
 while true
@@ -242,10 +298,13 @@ do
 		  /usr/share/JoystickXbox360/joystickxbox360.conf
 		jost=\$i
 		sudo evtest /dev/input/event\$i > /usr/share/JoystickXbox360/controle.conf & sudo pkill evtest
-		cat /usr/share/JoystickXbox360/controle.conf | grep "ABS_" | cut -d "(" -f2 > /usr/share/JoystickXbox360/controle1.conf
-		cat /usr/share/JoystickXbox360/controle.conf | grep "BTN_" | cut -d "(" -f2 >> /usr/share/JoystickXbox360/controle1.conf
+		cat /usr/share/JoystickXbox360/controle.conf | grep -n exit | cut -d ":" -f1 > /usr/share/JoystickXbox360/numero.conf
+		numero=\$(cat /usr/share/JoystickXbox360/numero.conf)
+		sed -n "1,\$numero p" /usr/share/JoystickXbox360/controle.conf >  /usr/share/JoystickXbox360/controle2.conf
+		cat /usr/share/JoystickXbox360/controle2.conf | grep ABS_ | cut -d "(" -f2 > /usr/share/JoystickXbox360/controle1.conf
+		cat /usr/share/JoystickXbox360/controle2.conf | grep BTN_ | cut -d "(" -f2 >> /usr/share/JoystickXbox360/controle1.conf
 		cat /usr/share/JoystickXbox360/controle1.conf | grep ")" | cut -d ")" -f1 > /usr/share/JoystickXbox360/controle.conf
-		rm /usr/share/JoystickXbox360/controle1.conf
+		rm /usr/share/JoystickXbox360/controle1.conf /usr/share/JoystickXbox360/controle2.conf
 		var=(\$(cat /usr/share/JoystickXbox360/controle.conf))
 		sleep 3
 		clear
@@ -328,11 +387,8 @@ do
 	fi
 	i=\$[ i + 1 ]
 done
-sudo chown root:root /usr/share/JoystickXbox360/joystick.log
-sudo chown root:root /usr/share/JoystickXbox360/joystickxbox360.conf
-sudo chown root:root /usr/share/JoystickXbox360/status.conf
-sudo chown root:root /usr/share/JoystickXbox360/xboxdrv.conf
-sudo chown root:root /usr/share/JoystickXbox360/controle.conf
+sudo chown root:root /usr/share/JoystickXbox360/*.log
+sudo chown root:root /usr/share/JoystickXbox360/*conf
 sudo chmod 775 /dev/input/event\$jost1
 sleep 6
 clear
@@ -469,8 +525,10 @@ do
 	i=\$[ i + 1 ]
 done
 chmod 775 /dev/input/event\$jost1
-echo -e "\033[31;1mAGUARDE...\033[0m"
-sleep 60
+texto="AGUARDE... PARA O JOYSTICK SER RECONHECIDO."
+cont="\$[\${#texto} + 4]"
+dialog --nocancel --pause "\$texto" 8 \$cont 60
+clear
 
 exit 0
 
@@ -505,6 +563,10 @@ EOF
 
 pkill xboxdrv &
 sleep 2
+echo -e "Joystick Xbox 360\033[31;1m parado\033[0m..." > \
+$pastaj/joystickxbox360.conf
+echo -e "Joystick Xbox 360\033[31;1m parado\033[0m..."
+sleep 2
 
 exit 0
 
@@ -517,7 +579,7 @@ Type=Application
 Terminal=false
 Name=Muda a configuração do joystick Xbox 360
 Name[pt_BR]=Muda a configuração do joystick Xbox 360
-Exec=roxterm -e "bash -c /usr/share/JoystickXbox360/MudarControle.sh"
+Exec=$term -e "bash -c /usr/share/JoystickXbox360/MudarControle.sh"
 Terminal=false
 StartupNotify=true
 Comment=Muda a configuração do joystick Xbox 360
@@ -537,7 +599,7 @@ Type=Application
 Terminal=false
 Name=Restart do joystick Xbox 360
 Name[pt_BR]=Restart do joystick Xbox 360
-Exec=roxterm -e "sudo service joystickxbox360 restart"
+Exec=$term -e "sudo service joystickxbox360 restart"
 Terminal=false
 StartupNotify=true
 Comment=Reinicia o joystick Xbox 360
@@ -558,7 +620,7 @@ Type=Application
 Terminal=false
 Name=Finaliza o joystick Xbox 360
 Name[pt_BR]=Finaliza o joystick Xbox 360
-Exec=roxterm -e "sudo service joystickxbox360 stop"
+Exec=$term -e "sudo service joystickxbox360 stop"
 Terminal=false
 StartupNotify=true
 Comment=Finaliza o joystick Xbox 360
