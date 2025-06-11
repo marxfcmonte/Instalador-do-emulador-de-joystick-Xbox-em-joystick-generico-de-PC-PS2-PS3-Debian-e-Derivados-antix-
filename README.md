@@ -12,6 +12,7 @@ Cria atalhos para a Área de trabalho e no menu dos aplicativos do sistema.
 - antimicro
 - evtest
 - dialog (A dependênia **dialog** é nativa em diversas distribuições baseadas em Debian, caso não haja será instalada.)
+- roxterm (A dependênia **roxterm** é nativa em diversas distribuições baseadas em Debian, caso não haja será instalada.)
 
 ## Totalmente automatizado.
 
