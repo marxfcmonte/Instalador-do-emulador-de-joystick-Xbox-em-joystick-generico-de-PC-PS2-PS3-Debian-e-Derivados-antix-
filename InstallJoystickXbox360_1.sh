@@ -53,6 +53,13 @@ terminal() {
     done
 }
 
+display_principal(){
+	cont="$[${#texto} + 4]"
+	dialog --infobox "$texto" 3 $cont
+	sleep 3
+	clear
+}
+
 if [ "$USER" != "root" ]; then
 	echo "Use comando 'sudo'  ou comando 'su' antes de inicializar o programa."
 	exit 1
@@ -78,112 +85,84 @@ clear
 
 menu(){
 	
-texto="SETAS PARA ESCOLHER E ENTER PARA CONFIRMAR"
-cont="$[${#texto} + 4]"
-opcao=$(dialog --title "MENU" --menu "$texto" 10 $cont 3 \
+	texto="SETAS PARA ESCOLHER E ENTER PARA CONFIRMAR"
+	cont="$[${#texto} + 4]"
+	opcao=$(dialog --title "MENU" --menu "$texto" 10 $cont 3 \
 "1" "PARA INSTALAR" \
 "2" "PARA REMOVER" \
 "3" "PARA SAIR" \
 --stdout)
-clear
-pastab="/usr/share/pixmaps/JoystickXbox360"
-pastaj="/usr/share/JoystickXbox360"
-case $opcao in
-	1)
-	lista=("Y" "B" "A" "X" "LB" "RB" "LT" "RT" "BACK" "START" "LS" "RS"\
- "↔ R" "↕ R" "↔ L" "↕ L" "↔ PAD" "↕ PAD" "↔ PAD" "↕ PAD")
-	botoes=("Y" "B" "A" "X" "L1" "R1" "L2" "R2" "SL" "ST" "L3" "R3"\
- "RX" "RY" "LX" "LY" "PADX1" "PADY1" "PADX2" "PADY2")
-	texto="Instalação sendo iniciada..."
-	cont="$[${#texto} + 4]"
-	dialog --infobox "$texto" 3 $cont
-	sleep 3
 	clear
-	if [ -d "$pastaj" ]; then
-		texto="O diretório JoystickXbox360 existe..."
-		cont="$[${#texto} + 4]"
-		dialog --infobox "$texto" 3 $cont
-		sleep 3
-		clear
-	else
-		texto="O diretório JoystickXbox360 será criado..."
-		cont="$[${#texto} + 4]"
-		dialog --infobox "$texto" 3 $cont
-		sleep 3
-		clear
-		mkdir $pastaj
-	fi
-	if [ -e "$pastaj/install.conf" ]; then
-		texto="A instalação dos pacotes não será necessária..."
-		cont="$[${#texto} + 4]"
-		dialog --infobox "$texto" 3 $cont
-		sleep 3
-		clear
-	else
-		apt update && apt-get upgrade -y
-		apt install -y xboxdrv antimicro evtest
-	fi
-	if [ -e "$pastaj/install.conf" ]; then
-		texto="O arquivo install.conf existe..."
-		cont="$[${#texto} + 4]"
-		dialog --infobox "$texto" 3 $cont
-		sleep 3
-		clear
-	else
-		texto="O arquivo install.conf será criado..."
-		cont="$[${#texto} + 4]"
-		dialog --infobox "$texto" 3 $cont
-		sleep 3
-		clear
-		echo "Pacotes instalados xboxdrv antimicro evtest" >\
-		 $pastaj/install.conf
-	fi
-	pkill xboxdrv &
-	sleep 5
-	i=0
-	while true
-	do
-		udevadm info -a -n /dev/input/event$i > "$pastaj"/joystick.log
-		if ! [ "$(cat "$pastaj/joystick.log")" ]; then
-			clear
-			texto="Porta do joystick não localizada..."
-			cont="$[${#texto} + 4]"
-			dialog --infobox "$texto" 3 $cont
-			sleep 3
-			clear
-			exit 1
+	pastab="/usr/share/pixmaps/JoystickXbox360"
+	pastaj="/usr/share/JoystickXbox360"
+	case $opcao in
+		1)
+		lista=("Y" "B" "A" "X" "LB" "RB" "LT" "RT" "BACK" "START" "LS" "RS"\
+ "↔ R" "↕ R" "↔ L" "↕ L" "↔ PAD" "↕ PAD" "↔ PAD" "↕ PAD")
+		botoes=("Y" "B" "A" "X" "L1" "R1" "L2" "R2" "SL" "ST" "L3" "R3"\
+ "RX" "RY" "LX" "LY" "PADX1" "PADY1" "PADX2" "PADY2")
+		texto="Instalação sendo iniciada..."
+		display_principal
+		if [ -d "$pastaj" ]; then
+			texto="O diretório JoystickXbox360 existe..."
+			display_principal
+		else
+			texto="O diretório JoystickXbox360 será criado..."
+			display_principal
+			mkdir $pastaj
 		fi
-		udevadm info -a -n /dev/input/event$i | grep -q "Joystick"
-		if [ "$?" = "0" ]; then
-			texto="Porta do joystick localizada..."
-			cont="$[${#texto} + 4]"
-			dialog --infobox "$texto" 3 $cont
-			sleep 3
+		if [ -e "$pastaj/install.conf" ]; then
+			texto="A instalação dos pacotes não será necessária..."
+			display_principal
 			clear
-			jost=$i
-			break
+		else
+			apt update && apt-get upgrade -y
+			apt install -y xboxdrv antimicro evtest
 		fi
-		i=$[ i + 1 ]
-	done
-	chmod 775 /dev/input/event$jost
-	
-	if [ -e "$pastaj/drvconf.conf" ]; then
-		rm $pastaj/drvconf.conf
-	fi
-	if [ -d "$pastab" ]; then
-		texto="O diretório para os icones já existe..."
-		cont="$[${#texto} + 4]"
-		dialog --infobox "$texto" 3 $cont
-		sleep 3
-		clear
-	else
-		texto="O diretório para os icones será criado..."
-		cont="$[${#texto} + 4]"
-		dialog --infobox "$texto" 3 $cont
-		sleep 3
-		clear
-		mkdir $pastab
-		cat <<EOF > "$pastaj"/xbox360
+		if [ -e "$pastaj/install.conf" ]; then
+			texto="O arquivo install.conf existe..."
+			display_principal
+		else
+			texto="O arquivo install.conf será criado..."
+			display_principal
+			echo "Pacotes instalados xboxdrv antimicro evtest" > \ 
+			$pastaj/install.conf
+		fi
+		pkill xboxdrv &
+		sleep 5
+		i=0
+		while true
+		do
+			udevadm info -a -n /dev/input/event$i > "$pastaj"/joystick.log
+			if ! [ "$(cat "$pastaj/joystick.log")" ]; then
+				clear
+				texto="Porta do joystick não localizada..."
+				display_principal
+				exit 1
+			fi
+			udevadm info -a -n /dev/input/event$i | grep -q "Joystick"
+			if [ "$?" = "0" ]; then
+				texto="Porta do joystick localizada..."
+				display_principal
+				jost=$i
+				break
+			fi
+			i=$[ i + 1 ]
+		done
+		chmod 664 /dev/input/event$jost
+		
+		if [ -e "$pastaj/drvconf.conf" ]; then
+			rm $pastaj/drvconf.conf
+		fi
+		if [ -d "$pastab" ]; then
+			texto="O diretório para os icones já existe..."
+			display_principal
+			clear
+		else
+			texto="O diretório para os icones será criado..."
+			display_principal
+			mkdir $pastab
+			cat <<EOF > "$pastaj"/xbox360
 https://raw.githubusercontent.com/marxfcmonte/Instalador-do-emulador-de-\
 joystick-Xbox-em-joystick-generico-de-PC-PS2-PS3-Debian-e-Derivados-antix-\
 /refs/heads/main/Icones/xbox360.png
@@ -194,75 +173,70 @@ https://raw.githubusercontent.com/marxfcmonte/Instalador-do-emulador-de-\
 joystick-Xbox-em-joystick-generico-de-PC-PS2-PS3-Debian-e-Derivados-antix-\
 /refs/heads/main/Icones/Botoes.tar.gz
 EOF
-		wget -i $pastaj/xbox360 -P /tmp/
-		mv /tmp/xbox360.png $pastab
-		mv /tmp/xbox360preto.png $pastab
-		mv /tmp/Botoes.tar.gz $pastab
-		tar -xf $pastab/Botoes.tar.gz -C $pastab
-		rm $pastab/Botoes.tar.gz
-	fi
-	j=0
-	while true
-	do	
-		evtest /dev/input/event$jost > $pastaj/testecon.conf &
-		feh $pastab/Botoes/xbox${botoes[$j]}.jpg &
-		texto="Atribua um botão ou analógico..."
-		cont="$[${#texto} + 4]"
-		dialog --infobox "$texto" 3 $cont
+			wget -i $pastaj/xbox360 -P /tmp/
+			mv /tmp/xbox360.png $pastab
+			mv /tmp/xbox360preto.png $pastab
+			mv /tmp/Botoes.tar.gz $pastab
+			tar -xf $pastab/Botoes.tar.gz -C $pastab
+			rm $pastab/Botoes.tar.gz
+		fi
+		j=0
 		while true
-		do
-			if [ "$(cat $pastaj/testecon.conf | grep -n exit)" ]; then 
-				cat $pastaj/testecon.conf | grep -n exit | cut -d ":" -f1 > $pastaj/nome.conf
-				numero=$(cat $pastaj/nome.conf)
-			else
-				numero=100
-			fi
-			sed -n "1,$numero p" $pastaj/testecon.conf > $pastaj/textocont.conf 
-			numbt=$(cat $pastaj/textocont.conf | grep -c BTN_)
-			numabs=$(cat $pastaj/textocont.conf | grep -c ABS_)
-			tot=$[$numbt + $numabs - 1] 
-			echo "$tot" > $pastaj/total.conf
-			sed "1,$numero d" $pastaj/testecon.conf > $pastaj/textogeral.conf 
+		do	
+			evtest /dev/input/event$jost > $pastaj/testecon.conf &
+			feh $pastab/Botoes/xbox${botoes[$j]}.jpg &
+			texto="Atribua um botão ou analógico..."
+			display_principal
+			while true
+			do
+				if [ "$(cat $pastaj/testecon.conf | grep -n exit)" ]; then 
+					cat $pastaj/testecon.conf | grep -n exit | cut -d ":" -f1 > $pastaj/nome.conf
+					numero=$(cat $pastaj/nome.conf)
+				else
+					numero=100
+				fi
+				sed -n "1,$numero p" $pastaj/testecon.conf > $pastaj/textocont.conf 
+				numbt=$(cat $pastaj/textocont.conf | grep -c BTN_)
+				numabs=$(cat $pastaj/textocont.conf | grep -c ABS_)
+				tot=$[$numbt + $numabs - 1] 
+				echo "$tot" > $pastaj/total.conf
+				sed "1,$numero d" $pastaj/testecon.conf > $pastaj/textogeral.conf 
+				sleep 1
+				if [ "$(cat $pastaj/textogeral.conf)" ]; then
+					break
+				fi
+			done
+			pkill evtest
+			pkill feh
 			sleep 1
-			if [ "$(cat $pastaj/textogeral.conf)" ]; then
+			cat $pastaj/textogeral.conf | grep value | cut -d "," -f3 |  cut -d "(" -f2 | cut -d ")" -f1 > $pastaj/testecon1.conf
+			mv $pastaj/testecon1.conf $pastaj/testecon.conf
+			awk -F "MSC_SCAN" '{print $1}' $pastaj/testecon.conf > $pastaj/temp.conf; mv $pastaj/temp.conf $pastaj/testecon.conf
+			sed '/^$/d' $pastaj/testecon.conf > $pastaj/temp.conf && mv $pastaj/temp.conf $pastaj/testecon.conf 
+			configu=$(head -n 1 $pastaj/testecon.conf)
+			echo "$configu" | sed 's/ //g' > $pastaj/temp.conf; mv $pastaj/temp.conf $pastaj/testecon.conf
+			if [ "$(cat $pastaj/testecon.conf)" ]; then
+				sleep 1
+				clear
+				nome=$(cat $pastaj/testecon.conf)
+				display_principal
+			fi
+			cat $pastaj/testecon.conf >> $pastaj/drvconf.conf
+			if [ "$j" -eq "$tot" ]; then
+				texto="Configuração terminada..."
+				cont="$[${#texto} + 4]"
+				dialog --nocancel --pause "$texto" 8 $cont 20 
+				clear
 				break
 			fi
+			j=$[ j + 1 ]
 		done
-		pkill evtest
-		pkill feh
-		sleep 1
-		cat $pastaj/textogeral.conf | grep value | cut -d "," -f3 |  cut -d "(" -f2 | cut -d ")" -f1 > $pastaj/testecon1.conf
-		mv $pastaj/testecon1.conf $pastaj/testecon.conf
-		awk -F "MSC_SCAN" '{print $1}' $pastaj/testecon.conf > $pastaj/temp.conf; mv $pastaj/temp.conf $pastaj/testecon.conf
-		sed '/^$/d' $pastaj/testecon.conf > $pastaj/temp.conf && mv $pastaj/temp.conf $pastaj/testecon.conf 
-		configu=$(head -n 1 $pastaj/testecon.conf)
-		echo "$configu" | sed 's/ //g' > $pastaj/temp.conf; mv $pastaj/temp.conf $pastaj/testecon.conf
-		if [ "$(cat $pastaj/testecon.conf)" ]; then
-			sleep 1
-			clear
-			nome=$(cat $pastaj/testecon.conf)
-			texto="Função atribuída: $nome..."
-			cont="$[${#texto} + 4]"
-			dialog --infobox "$texto" 3 $cont 
-			sleep 1
-			clear
-		fi
-		cat $pastaj/testecon.conf >> $pastaj/drvconf.conf
-		if [ "$j" -eq "$tot" ]; then
-			texto="Configuração terminada..."
-			cont="$[${#texto} + 4]"
-			dialog --nocancel ---pause "$texto" 8 $cont 20 
-			clear
-			break
-		fi
-		j=$[ j + 1 ]
-	done
-	configu=$(cat $pastaj/drvconf.conf)
-	echo "$configu" | sed 's/ //g' > $pastaj/drvconf.conf
-	controle=($(cat $pastaj/drvconf.conf))
-	var=($(cat $pastaj/drvconf.conf))
+		configu=$(cat $pastaj/drvconf.conf)
+		echo "$configu" | sed 's/ //g' > $pastaj/drvconf.conf
+		controle=($(cat $pastaj/drvconf.conf))
+		var=($(cat $pastaj/drvconf.conf))
 
-	texto=$(echo -e "\nHá alguma configuraçao se repitindo?\n
+		texto=$(echo -e "\nHá alguma configuraçao se repitindo?\n
 $(
 i=0
 j=9
@@ -282,12 +256,12 @@ printf "%1s\n" "**********************"
 )
 Sim para sair e Não para continuar como a configuração.")
 
-	dialog --no-collapse --defaultno --title "Configurações preliminares" --yesno "$texto" 0 0 
+		dialog --no-collapse --defaultno --title "Configurações preliminares" --yesno "$texto" 0 0 
 
-	if ! [ "$?" = "0" ]; then
-		texto="O analógico esquerdo invertido do eixo Y - Sim (MARCADDO)"
-		cont="$[${#texto} + 13]"
-		opcao=$(dialog --no-cancel --title "MENU" --checklist \
+		if ! [ "$?" = "0" ]; then
+			texto="O analógico esquerdo invertido do eixo Y - Sim (MARCADDO)"
+			cont="$[${#texto} + 13]"
+			opcao=$(dialog --no-cancel --title "MENU" --checklist \
 "Qual das direções estão invertidas?" 13 $cont 6 \
 "0" "O analógico direito invertido do eixo X - Sim (MARCADDO)" OFF \
 "1" "O analógico direito invertido do eixo Y - Sim (MARCADDO)" ON \
@@ -296,71 +270,65 @@ Sim para sair e Não para continuar como a configuração.")
 "4" "O analógico PAD invertido do eixo X - Sim (MARCADDO)" OFF \
 "5" "O analógico PAD invertido do eixo Y - Sim (MARCADDO)" OFF \
 --stdout)
-		clear
-		analogico_invertido=("-X1=X1" "-Y1=Y1" "-X2=X2" "-Y2=Y2" "-DPAD_X=DPAD_X" "-DPAD_Y=DPAD_Y")
-		analogico=("X1=X1" "Y1=Y1" "X2=X2" "Y2=Y2" "DPAD_X=DPAD_X" "DPAD_Y=DPAD_Y")
-		if [ -e "$pastaj"/config.conf ]; then
-			rm "$pastaj"/config.conf
-		fi
-		num="0 1 2 3 4 5"
-		for p in $(echo "$opcao")
-		do	
-			echo "${analogico_invertido[$p]} " >> "$pastaj"/config.conf
-			num=$(echo "$num" | sed "s/[$p-$p]//g")
-		done
-		for p in $(echo "$num")
-		do	
-			echo "${analogico[$p]} " >> "$pastaj"/config.conf
-		done
-		config=($(cat "$pastaj"/config.conf))
-		pkill xboxdrv
-		sleep 5
-		xboxdrv --evdev /dev/input/event$jost --evdev-absmap ${var[12]}=x1,${var[13]}=y1,${var[14]}=x2,${var[15]}=y2,\
+			clear
+			analogico_invertido=("-X1=X1" "-Y1=Y1" "-X2=X2" "-Y2=Y2" "-DPAD_X=DPAD_X" "-DPAD_Y=DPAD_Y")
+			analogico=("X1=X1" "Y1=Y1" "X2=X2" "Y2=Y2" "DPAD_X=DPAD_X" "DPAD_Y=DPAD_Y")
+			if [ -e "$pastaj"/config.conf ]; then
+				rm "$pastaj"/config.conf
+			fi
+			num="0 1 2 3 4 5"
+			for p in $(echo "$opcao")
+			do	
+				echo "${analogico_invertido[$p]} " >> "$pastaj"/config.conf
+				num=$(echo "$num" | sed "s/[$p-$p]//g")
+			done
+			for p in $(echo "$num")
+			do	
+				echo "${analogico[$p]} " >> "$pastaj"/config.conf
+			done
+			config=($(cat "$pastaj"/config.conf))
+			pkill xboxdrv
+			sleep 5
+			xboxdrv --evdev /dev/input/event$jost --evdev-absmap ${var[12]}=x1,${var[13]}=y1,${var[14]}=x2,${var[15]}=y2,\
 ${var[16]}=dpad_x,${var[17]}=dpad_y --axismap ${config[0]},${config[1]},${config[2]},${config[3]},${config[4]},\
 ${config[5]}  --evdev-keymap ${var[0]}=y,${var[1]}=b,${var[2]}=a,${var[3]}=x,${var[4]}=lb,${var[5]}=rb,${var[6]}=lt,\
 ${var[7]}=rt,${var[8]}=back,${var[9]}=start,${var[10]}=tl,${var[11]}=tr --mimic-xpad --silent > /tmp/joystick.log &
-		clear
-		texto="Configurações atribuídas: 
+			clear
+			texto="Configurações atribuídas: 
 
 $(cat $pastaj/config.conf)"
-		cont="$[${#texto} + 4]"
-		dialog --nocancel --pause "$texto" 15 29 60 
-		clear
-		i=0
-		while true
-		do
-			udevadm info -a -n /dev/input/event$i > /usr/share/JoystickXbox360/joystick.log
-			if ! [ "$(cat "$pastaj/joystick.log")" ]; then
-				clear
-				texto="Porta do joystick Xbox 360 emulado não localizada..."
-				cont="$[${#texto} + 4]"
-				dialog --infobox "$texto" 3 $cont
-				sleep 3
-				clear
-				exit 1
-			fi
-			udevadm info -a -n /dev/input/event$i | grep -q "Microsoft X-Box 360 pad"
-			if [ "$?" = "0" ]; then
-				texto="Porta do joystick Xbox 360 emulado localizada..."
-				cont="$[${#texto} + 4]"
-				dialog --infobox "$texto" 3 $cont
-				sleep 3
-				clear
-				jost1=$i
-				break
-			fi
-			i=$[ i + 1 ]
-		done
-	else
-		texto="Tente novamente"
-		cont="$[${#texto} + 4]"
-		dialog --msgbox "$texto" 5 $cont
-		clear
-		menu
-	fi
-	chmod 775 /dev/input/event$jost1
-	sleep 2
-	cat <<EOF > /etc/X11/xorg.conf.d/51-joystick.conf
+			cont="$[${#texto} + 4]"
+			dialog --nocancel --pause "$texto" 15 29 60 
+			clear
+			i=0
+			while true
+			do
+				udevadm info -a -n /dev/input/event$i > /usr/share/JoystickXbox360/joystick.log
+				if ! [ "$(cat "$pastaj/joystick.log")" ]; then
+					clear
+					texto="Porta do joystick Xbox 360 emulado não localizada..."
+					display_principal
+					exit 1
+				fi
+				udevadm info -a -n /dev/input/event$i | grep -q "Microsoft X-Box 360 pad"
+				if [ "$?" = "0" ]; then
+					texto="Porta do joystick Xbox 360 emulado localizada..."
+					display_principal
+					jost1=$i
+					break
+				fi
+				i=$[ i + 1 ]
+			done
+		else
+			texto="Tente novamente"
+			cont="$[${#texto} + 4]"
+			dialog --msgbox "$texto" 5 $cont
+			clear
+			menu
+		fi
+		chmod 664 /dev/input/event$jost1
+		sleep 2
+		cat <<EOF > /etc/X11/xorg.conf.d/51-joystick.conf
 Section "InputClass"
 	Identifier "joystick catchall"
 	MatchIsJoystick "on"
@@ -379,23 +347,48 @@ Section "InputClass"
 	Option "StartMouseEnabled" "False"
 EndSection
 EOF
-	cat <<EOF > "$pastaj"/jyt.conf 
+		cat <<EOF > "$pastaj"/jyt.conf 
 --evdev-absmap ${var[12]}=x1,${var[13]}=y1,${var[14]}=x2,${var[15]}=y2,\
 ${var[16]}=dpad_x,${var[17]}=dpad_y --axismap ${config[0]},${config[1]},${config[2]},${config[3]},${config[4]},\
 ${config[5]} --evdev-keymap ${var[0]}=y,${var[1]}=b,${var[2]}=a,${var[3]}=x,${var[4]}=lb,${var[5]}=rb,${var[6]}=lt,\
 ${var[7]}=rt,${var[8]}=back,${var[9]}=start,${var[10]}=tl,${var[11]}=tr --mimic-xpad --silent
 EOF
-	fim="EOF"
-	cat <<EOF > $pastaj/MudarControle.sh
+		fim="EOF"
+		cat <<EOF > $pastaj/MudarControle.sh
 #!$SHELL
 
-senha=\$(dialog --title "AUTORIZAÇÃO" --passwordbox "Digite a senha (SUDO):" 8 40 --stdout)
-if [ -z "\$senha" ]; then
-	dialog --title "ERRO" --infobox "A senha (SUDO) não foi digitada." 3 40
-	sleep 3
+display_principal(){
+	cont="\$[\${#texto} + 4]"
+	dialog --infobox "\$texto" 3 \$cont
+	sleep 1
 	clear
-	exit 1
-fi
+}
+
+cancelar_principal(){
+	if [ "\$validacao" = "1" ]; then
+		texto="Cancelado pelo usuário."
+		display_principal
+		sudo chown root:root \$pasta_joystick/*.log
+		sudo chown root:root \$pasta_joystick/*.conf
+		sudo service joystickxbox360 restart 
+		exit 0
+	fi
+}
+
+
+while true
+do
+	senha=\$(dialog --title "AUTORIZAÇÃO" --passwordbox "Digite a senha (SUDO):" 8 40 --stdout)
+	validacao="\$?"
+	cancelar_principal
+	if [ -z "\$senha" ]; then
+		dialog --colors --title "\Zr\Z1  ERRO                               \Zn" --infobox "A senha (SUDO) não foi digitada." 3 37
+		sleep 2
+		clear
+	else
+		break
+	fi
+done
 clear
 echo \$senha|sudo -S -p "" chown $SUDO_USER:$SUDO_USER $pastaj/*.log
 sudo pkill xboxdrv &
@@ -421,10 +414,7 @@ case \$opcao in
 		if ! [ "\$(cat "$pastaj/joystick.log")" ]; then
 			clear
 			texto="Porta do joystick não localizada..."
-			cont="\$[\${#texto} + 4]"
-			dialog --infobox "\$texto" 3 \$cont
-			sleep 3
-			clear
+			display_principal
 			echo -e "Joystick Xbox 360\033[31;1m falhou\033[0m..." >\
 			  $pastaj/joystickxbox360.conf
 			exit 1
@@ -441,15 +431,14 @@ case \$opcao in
 		fi
 		i=\$[ i + 1 ]
 	done
-	sudo chmod 775 /dev/input/event\$jost
+	sudo chmod 664 /dev/input/event\$jost
 	sleep 5
 	while true
 	do	
 		sudo evtest /dev/input/event\$jost > $pastaj/testecon.conf &
 		feh $pastab/Botoes/xbox\${botoes[\$j]}.jpg &
 		texto="Atribua um botão ou analógico..."
-		cont="\$[\${#texto} + 4]"
-		dialog --infobox "\$texto" 3 \$cont
+		display_principal
 		while true
 		do
 			if [ "\$(cat $pastaj/testecon.conf | grep -n exit)" ]; then 
@@ -483,10 +472,7 @@ case \$opcao in
 			clear
 			nome=\$(cat $pastaj/testecon.conf)
 			texto="Função atribuída: \$nome..."
-			cont="\$[\${#texto} + 4]"
-			dialog --infobox "\$texto" 3 \$cont 
-			sleep 1
-			clear
+			display_principal
 		fi
 		cat $pastaj/testecon.conf >> $pastaj/drvconf.conf
 		if [ "\$j" -eq "\$tot" ]; then
@@ -574,19 +560,13 @@ Sim para sair e Não para continuar como a configuração.")
 			if ! [ "\$(cat $pastaj/joystick.log)" ]; then
 				clear
 				texto="Porta do joystick Xbox 360 emulado não localizada..."
-				cont="\$[\${#texto} + 4]"
-				dialog --infobox "\$texto" 3 \$cont
-				sleep 3
-				clear
+				display_principal
 				exit 1
 			fi
 			udevadm info -a -n /dev/input/event\$i | grep -q "Microsoft X-Box 360 pad"
 			if [ "\$?" = "0" ]; then
 				texto="Porta do joystick Xbox 360 emulado localizada..."
-				cont="\$[\${#texto} + 4]"
-				dialog --infobox "\$texto" 3 \$cont
-				sleep 3
-				clear
+				display_principal
 				jost1=\$i
 				break
 			fi
@@ -601,7 +581,7 @@ $fim
 clear
 sudo chown root:root $pastaj/*.log
 sudo chown root:root $pastaj/*.conf
-sudo chmod 775 /dev/input/event\$jost1
+sudo chmod 664 /dev/input/event\$jost1
 	sleep 6
 	clear
 	sudo service joystickxbox360 status
@@ -664,19 +644,13 @@ os analógicos ficarem com sentido invertido,\
 		if ! [ "\$(cat "$pastaj/joystick.log")" ]; then
 			clear
 			texto="Porta do joystick Xbox 360 emulado não localizada..."
-			cont="\$[\${#texto} + 4]"
-			dialog --infobox "\$texto" 3 \$cont
-			sleep 3
-			clear
+			display_principal
 			exit 1
 		fi
 		udevadm info -a -n /dev/input/event\$i | grep -q "Microsoft X-Box 360 pad"
 		if [ "\$?" = "0" ]; then
 			texto="Porta do joystick Xbox 360 emulado localizada..."
-			cont="\$[\${#texto} + 4]"
-			dialog --infobox "\$texto" 3 \$cont
-			sleep 3
-			clear
+			display_principal
 			jost1=\$i
 			break
 		fi
@@ -691,7 +665,7 @@ $fim
 clear
 sudo chown root:root $pastaj/*.log
 sudo chown root:root $pastaj/*.conf
-sudo chmod 775 /dev/input/event\$jost1
+sudo chmod 664 /dev/input/event\$jost1
 	sleep 6
 	clear
 	sudo service joystickxbox360 status
@@ -709,9 +683,7 @@ os analógicos ficarem com sentido invertido,\
 	sudo chown root:root $pastaj/*.conf
 	sudo service joystickxbox360 restart 
 	texto="Saindo da configuração..."
-	cont="\$[\${#texto} + 4]"
-	dialog --infobox "\$texto" 3 \$cont
-	sleep 3
+	display_principal
 	reset
 	exit 0
 	;;
@@ -720,18 +692,16 @@ os analógicos ficarem com sentido invertido,\
 	sudo chown root:root $pastaj/*.conf
 	sudo service joystickxbox360 restart 
 	texto="Configuração cancelada..."
-	cont="\$[\${#texto} + 4]"
-	dialog --infobox "\$texto" 3 \$cont
-	sleep 3
+	display_principal
 	reset
 	exit 0
 	;;
 esac
 	
 exit 0
-
 EOF
-	cat <<EOF > $pastaj/StartJoystick.sh
+
+		cat <<EOF > $pastaj/StartJoystick.sh
 #!$SHELL
 
 pkill xboxdrv &
@@ -781,13 +751,13 @@ do
 	fi
 	i=\$[ i + 1 ]
 done
-chmod 775 /dev/input/event\$jost1
+chmod 664 /dev/input/event\$jost1
 sleep 2
 
 exit 0
-
 EOF
-	cat <<EOF > $pastaj/RStarJoystick.sh
+
+		cat <<EOF > $pastaj/RStarJoystick.sh
 #!$SHELL
 
 pkill xboxdrv &
@@ -846,16 +816,15 @@ do
 	fi
 	i=\$[ i + 1 ]
 done
-chmod 775 /dev/input/event\$jost1
+chmod 664 /dev/input/event\$jost1
 texto="AGUARDE... PARA O JOYSTICK SER RECONHECIDO."
 cont="\$[\${#texto} + 4]"
 dialog --nocancel --pause "\$texto" 8 \$cont 60
 clear
 
 exit 0
-
 EOF
-	cat <<EOF > $pastaj/StopJoystick.sh
+		cat <<EOF > $pastaj/StopJoystick.sh
 #!$SHELL
 
 pkill xboxdrv &
@@ -867,10 +836,9 @@ echo -e "Joystick Xbox 360\033[31;1m parado\033[0m..."
 sleep 2
 
 exit 0
-
 EOF
 
-	cat <<EOF > /usr/share/applications/MudarControle.desktop
+		cat <<EOF > /usr/share/applications/MudarControle.desktop
 [Desktop Entry]
 Version=1.0
 Type=Application
@@ -888,9 +856,8 @@ Keywords[pt_BR]=joystick;calibration;
 GenericName=Restart joystick Xbox 360
 GenericName[pt_BR]=Restart do joystick Xbox 360
 Icon=/usr/share/pixmaps/JoystickXbox360/xbox360.png
-
 EOF
-	cat <<EOF > /usr/share/applications/RStarJoystick.desktop
+		cat <<EOF > /usr/share/applications/RStarJoystick.desktop
 [Desktop Entry]
 Version=1.0
 Type=Application
@@ -908,10 +875,9 @@ Keywords[pt_BR]=joystick;calibration;
 GenericName=Restart joystick Xbox 360
 GenericName[pt_BR]=Restart do joystick Xbox 360
 Icon=/usr/share/pixmaps/JoystickXbox360/xbox360.png
-
 EOF
 
-	cat <<EOF > /usr/share/applications/StopJoystick.desktop
+		cat <<EOF > /usr/share/applications/StopJoystick.desktop
 [Desktop Entry]
 Version=1.0
 Type=Application
@@ -929,21 +895,20 @@ Keywords[pt_BR]=joystick;calibration;
 GenericName=Restart do joystick Xbox 360
 GenericName[pt_BR]=Restart do joystick Xbox 360
 Icon=/usr/share/pixmaps/JoystickXbox360/xbox360preto.png
-
 EOF
 
-	cp /usr/share/applications/MudarControle.desktop /home/$SUDO_USER/Desktop
-	cp /usr/share/applications/RStarJoystick.desktop /home/$SUDO_USER/Desktop
-	cp /usr/share/applications/StopJoystick.desktop /home/$SUDO_USER/Desktop
-	texto="Os atalhos na Àrea de trabalho foram criados..."
-	cont="$[${#texto} + 4]"
-	dialog --infobox "$texto" 3 $cont
-	sleep 3
-	clear
-	chmod +x /usr/share/JoystickXbox360/*.sh /usr/share/applications/*.desktop
-	chmod 775 /home/$SUDO_USER/Desktop/*.desktop
-	chown $SUDO_USER:$SUDO_USER /home/$SUDO_USER/Desktop/*.desktop
-	cat <<EOF >  /etc/init.d/joystickxbox360
+		cp /usr/share/applications/MudarControle.desktop /home/$SUDO_USER/Desktop
+		cp /usr/share/applications/RStarJoystick.desktop /home/$SUDO_USER/Desktop
+		cp /usr/share/applications/StopJoystick.desktop /home/$SUDO_USER/Desktop
+		texto="Os atalhos na Àrea de trabalho foram criados..."
+		cont="$[${#texto} + 4]"
+		dialog --infobox "$texto" 3 $cont
+		sleep 3
+		clear
+		chmod +x /usr/share/JoystickXbox360/*.sh /usr/share/applications/*.desktop
+		chmod 775 /home/$SUDO_USER/Desktop/*.desktop
+		chown $SUDO_USER:$SUDO_USER /home/$SUDO_USER/Desktop/*.desktop
+		cat <<EOF >  /etc/init.d/joystickxbox360
 #!/bin/sh
 
 ### BEGIN INIT INFO
@@ -980,217 +945,140 @@ esac
 exit 0
 
 EOF
-	chmod +x /etc/init.d/joystickxbox360
-	update-rc.d joystickxbox360 defaults
-	cat /etc/sudoers | grep -q "$SUDO_USER ALL=NOPASSWD: /etc/init.d/joystickxbox360"
-	if [ "$?" = "1" ]; then
-		texto="As configurações serão atualizadas..."
-		cont="$[${#texto} + 4]"
-		dialog --infobox "$texto" 3 $cont
-		sleep 3
+		chmod +x /etc/init.d/joystickxbox360
+		update-rc.d joystickxbox360 defaults
+		cat /etc/sudoers | grep -q "$SUDO_USER ALL=NOPASSWD: /etc/init.d/joystickxbox360"
+		if [ "$?" = "1" ]; then
+			texto="As configurações serão atualizadas..."
+			cdisplay_principal
+			sed '/^$/d' /etc/sudoers > /tmp/temp.conf && mv /tmp/temp.conf /etc/sudoers
+			echo "$SUDO_USER ALL=NOPASSWD: /etc/init.d/joystickxbox360" >> /etc/sudoers
+		else
+			texto="As configurações estão atualizadas..."
+			display_principal
+		fi
 		reset
-		sed '/^$/d' /etc/sudoers > /tmp/temp.conf && mv /tmp/temp.conf /etc/sudoers
-		echo "$SUDO_USER ALL=NOPASSWD: /etc/init.d/joystickxbox360" >> /etc/sudoers
-	else
-		texto="As configurações estão atualizadas..."
-		cont="$[${#texto} + 4]"
-		dialog --infobox "$texto" 3 $cont
-		sleep 3
-		reset
-	fi
-	desktop-menu --write-out-global
-	texto="Testanto o serviço Joystickxbox360"
-	cont="$[${#texto} + 4]"
-	dialog --infobox "$texto" 3 $cont
-	sleep 3
-	clear
-	service joystickxbox360 start
-	service joystickxbox360 status
-	sleep 6
-	clear
-	dialog --nocancel --pause "Teste o Joystick Xbox 360 emulado no AntiMicroX caso\n
+		desktop-menu --write-out-global
+		texto="Testanto o serviço Joystickxbox360"
+		display_principal
+		service joystickxbox360 start
+		service joystickxbox360 status
+		sleep 6
+		clear
+		dialog --nocancel --pause "Teste o Joystick Xbox 360 emulado no AntiMicroX caso\n
 os analógicos ficarem com sentido invertido,\
  use o aplicativo 'Muda a configuração do joystick Xbox 360'." 10 65 20
-	reset
-	antimicrox
-	;;
-	2)
-	if [ -d "$pastaj" ]; then
-		texto="O diretório JoystickXbox360 será removido..."
-		cont="$[${#texto} + 4]"
-		dialog --infobox "$texto" 3 $cont
-		sleep 3
-		clear
-		service joystickxbox360 stop
-		update-rc.d joystickxbox360 remove
-		rm -rf /usr/share/JoystickXbox360
-		rm /etc/init.d/joystickxbox360
-	else
-		texto="O diretório JoystickXbox360 não encontrado..."
-		cont="$[${#texto} + 4]"
-		dialog --infobox "$texto" 3 $cont
-		sleep 3
-		clear
-	fi
-	if [ -d "$pastab" ]; then
-		texto="O diretório ../pixmaps/JoystickXbox360 será removido..."
-		cont="$[${#texto} + 4]"
-		dialog --infobox "$texto" 3 $cont
-		sleep 3
-		clear
-		rm -rf /usr/share/pixmaps/JoystickXbox360
-	else
-		texto="O diretório ../pixmaps/JoystickXbox360 não encontrado..."
-		cont="$[${#texto} + 4]"
-		dialog --infobox "$texto" 3 $cont
-		sleep 3
-		clear
-	fi
-	if [ -e "/etc/X11/xorg.conf.d/51-joystick.conf" ]; then
-		texto="O arquivo 51-joystick.conf será removido..."
-		cont="$[${#texto} + 4]"
-		dialog --infobox "$texto" 3 $cont
-		sleep 3
-		clear
-		rm /etc/X11/xorg.conf.d/51-joystick.conf
-	else
-		texto="O arquivo 51-joystick.conf não encontrado..."
-		cont="$[${#texto} + 4]"
-		dialog --infobox "$texto" 3 $cont
-		sleep 3
-		clear
-	fi
-	if [ -e "/usr/share/applications/RStarJoystick.desktop" ]; then
-		texto="O arquivo ../applications/RStarJoystick.desktop será removido..."
-		cont="$[${#texto} + 4]"
-		dialog --infobox "$texto" 3 $cont
-		sleep 3
-		clear
-		rm /usr/share/applications/RStarJoystick.desktop
-	else
-		texto="O arquivo ../applications/RStarJoystick.desktop não encontrado..."
-		cont="$[${#texto} + 4]"
-		dialog --infobox "$texto" 3 $cont
-		sleep 3
-		clear
-	fi
-	if [ -e "/usr/share/applications/MudarControle.desktop" ]; then
-		texto="O arquivo ../applications/MudarControle.desktop será removido..."
-		cont="$[${#texto} + 4]"
-		dialog --infobox "$texto" 3 $cont
-		sleep 3
-		clear
-		rm /usr/share/applications/MudarControle.desktop
-	else
-		texto="O arquivo ../applications/MudarControle.desktop não encontrado..."
-		cont="$[${#texto} + 4]"
-		dialog --infobox "$texto" 3 $cont
-		sleep 3
-		clear
-	fi
-	if [ -e "/usr/share/applications/StopJoystick.desktop" ]; then
-		texto="O arquivo ../applications/StopJoystick.desktop será removido..."
-		cont="$[${#texto} + 4]"
-		dialog --infobox "$texto" 3 $cont
-		sleep 3
-		clear
-		rm /usr/share/applications/StopJoystick.desktop
-	else
-		texto="O arquivo ../applications/StopJoystick.desktop não encontrado..."
-		cont="$[${#texto} + 4]"
-		dialog --infobox "$texto" 3 $cont
-		sleep 3
-		clear
-	fi
-	if [ -e "/home/$SUDO_USER/Desktop/RStarJoystick.desktop" ]; then
-		texto="O arquivo ../Desktop/RStarJoystick.desktop será removido..."
-		cont="$[${#texto} + 4]"
-		dialog --infobox "$texto" 3 $cont
-		sleep 3
-		clear
-		rm /home/$SUDO_USER/Desktop/RStarJoystick.desktop
-	else
-		texto="O arquivo ../Desktop/RStarJoystick.desktop não encontrado..."
-		cont="$[${#texto} + 4]"
-		dialog --infobox "$texto" 3 $cont
-		sleep 3
-		clear
-	fi
-	if [ -e "/home/$SUDO_USER/Desktop/StopJoystick.desktop" ]; then
-		texto="O arquivo ../Desktop/StopJoystick.desktop será removido..."
-		cont="$[${#texto} + 4]"
-		dialog --infobox "$texto" 3 $cont
-		sleep 3
-		clear
-		rm /home/$SUDO_USER/Desktop/StopJoystick.desktop
-	else
-		texto="O arquivo ../Desktop/StopJoystick.desktop não encontrado..."
-		cont="$[${#texto} + 4]"
-		dialog --infobox "$texto" 3 $cont
-		sleep 3
-		clear
-	fi
-	if [ -e "/home/$SUDO_USER/Desktop/MudarControle.desktop" ]; then
-		texto="O arquivo ../Desktop/MudarControle.desktop será removido..."
-		cont="$[${#texto} + 4]"
-		dialog --infobox "$texto" 3 $cont
-		sleep 3
-		clear
-		rm /home/$SUDO_USER/Desktop/MudarControle.desktop
-	else
-		texto="O arquivo ../Desktop/MudarControle.desktop não encontrado..."
-		cont="$[${#texto} + 4]"
-		dialog --infobox "$texto" 3 $cont
-		sleep 3
-		clear
-	fi
-	cat /etc/sudoers | grep -q "$SUDO_USER ALL=NOPASSWD: /etc/init.d/joystickxbox360"
-	if [ "$?" = "1" ]; then
-		texto="Configuração não encontrada.."
-		cont="$[${#texto} + 4]"
-		dialog --infobox "$texto" 3 $cont
-		sleep 3
 		reset
-	else
-		texto="A configuração será deletada..."
-		cont="$[${#texto} + 4]"
-		dialog --infobox "$texto" 3 $cont
-		sleep 3
-		clear
-		awk -F "$SUDO_USER ALL=NOPASSWD: /etc/init.d/joystickxbox360" '{print $1}' /etc/sudoers > /tmp/temp.conf
-		mv /tmp/temp.conf /etc/sudoers
-		texto="Os arquivos foram removidos..."
-		cont="$[${#texto} + 4]"
-		dialog --infobox "$texto" 3 $cont
-		sleep 3
+		antimicrox
+		exit 0
+		;;
+		2)
+		if [ -d "$pastaj" ]; then
+			texto="O diretório JoystickXbox360 será removido..."
+			display_principal
+			service joystickxbox360 stop
+			update-rc.d joystickxbox360 remove
+			rm -rf /usr/share/JoystickXbox360
+			rm /etc/init.d/joystickxbox360
+		else
+			texto="O diretório JoystickXbox360 não encontrado..."
+			display_principal
+		fi
+		if [ -d "$pastab" ]; then
+			texto="O diretório ../pixmaps/JoystickXbox360 será removido..."
+			display_principal
+			rm -rf /usr/share/pixmaps/JoystickXbox360
+		else
+			texto="O diretório ../pixmaps/JoystickXbox360 não encontrado..."
+			display_principal
+		fi
+		if [ -e "/etc/X11/xorg.conf.d/51-joystick.conf" ]; then
+			texto="O arquivo 51-joystick.conf será removido..."
+			display_principal
+			rm /etc/X11/xorg.conf.d/51-joystick.conf
+		else
+			texto="O arquivo 51-joystick.conf não encontrado..."
+			display_principal
+		fi
+		if [ -e "/usr/share/applications/RStarJoystick.desktop" ]; then
+			texto="O arquivo ../applications/RStarJoystick.desktop será removido..."
+			display_principal
+			rm /usr/share/applications/RStarJoystick.desktop
+		else
+			texto="O arquivo ../applications/RStarJoystick.desktop não encontrado..."
+			display_principal
+		fi
+		if [ -e "/usr/share/applications/MudarControle.desktop" ]; then
+			texto="O arquivo ../applications/MudarControle.desktop será removido..."
+			display_principal
+			rm /usr/share/applications/MudarControle.desktop
+		else
+			texto="O arquivo ../applications/MudarControle.desktop não encontrado..."
+			display_principal
+		fi
+		if [ -e "/usr/share/applications/StopJoystick.desktop" ]; then
+			texto="O arquivo ../applications/StopJoystick.desktop será removido..."
+			display_principal
+			rm /usr/share/applications/StopJoystick.desktop
+		else
+			texto="O arquivo ../applications/StopJoystick.desktop não encontrado..."
+			display_principal
+		fi
+		if [ -e "/home/$SUDO_USER/Desktop/RStarJoystick.desktop" ]; then
+			texto="O arquivo ../Desktop/RStarJoystick.desktop será removido..."
+			display_principal
+			rm /home/$SUDO_USER/Desktop/RStarJoystick.desktop
+		else
+			texto="O arquivo ../Desktop/RStarJoystick.desktop não encontrado..."
+			display_principal
+		fi
+		if [ -e "/home/$SUDO_USER/Desktop/StopJoystick.desktop" ]; then
+			texto="O arquivo ../Desktop/StopJoystick.desktop será removido..."
+			display_principal
+			rm /home/$SUDO_USER/Desktop/StopJoystick.desktop
+		else
+			texto="O arquivo ../Desktop/StopJoystick.desktop não encontrado..."
+			display_principal
+		fi
+		if [ -e "/home/$SUDO_USER/Desktop/MudarControle.desktop" ]; then
+			texto="O arquivo ../Desktop/MudarControle.desktop será removido..."
+			display_principal
+			rm /home/$SUDO_USER/Desktop/MudarControle.desktop
+		else
+			texto="O arquivo ../Desktop/MudarControle.desktop não encontrado..."
+			display_principal
+		fi
+		cat /etc/sudoers | grep -q "$SUDO_USER ALL=NOPASSWD: /etc/init.d/joystickxbox360"
+		if [ "$?" = "1" ]; then
+			texto="Configuração não encontrada.."
+			display_principal
+		else
+			texto="A configuração será deletada..."
+			display_principalr
+			awk -F "$SUDO_USER ALL=NOPASSWD: /etc/init.d/joystickxbox360" '{print $1}' /etc/sudoers > /tmp/temp.conf
+			mv /tmp/temp.conf /etc/sudoers
+			texto="Os arquivos foram removidos..."
+			display_principal
+			apt remove -y xboxdrv antimicro evtest
+			apt autoremove -y
+		fi
 		reset
-		apt remove -y xboxdrv antimicro evtest
-		apt autoremove -y
+		exit 0
+		;;
+		3)
+		texto="Saindo do instalador..."
+		display_principal
 		reset
-	fi
-	exit 0
-	;;
-	3)
-	texto="Saindo do instalador..."
-	cont="$[${#texto} + 4]"
-	dialog --infobox "$texto" 3 $cont
-	sleep 3
-	reset
-	exit 0
-	;;
-	*)
-	texto="Instalação cancelada..."
-	cont="$[${#texto} + 4]"
-	dialog --infobox "$texto" 3 $cont
-	sleep 3
-	reset
-	exit 0
-	;;
-esac
-	
+		exit 0
+		;;
+		*)
+		texto="Instalação cancelada..."
+		display_principal
+		reset
+		exit 0
+		;;
+	esac
 }
 
 menu
 
-
-exit 0
